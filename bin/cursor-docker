@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+main() (
+  [[ $# -gt 0 ]] || set -- "$(pwd -P)"
+
+  setup "$@"; shift
+
+  cd "$repo" ||
+    die "Failed to cd to repo: $repo"
+
+  export CURSOR_DOCKER_DOCKERFILE=$root/Dockerfile
+  export CURSOR_DOCKER_ARGS="$*"
+
+  make -e -f "$root/Makefile" cursor "$@"
+)
+
+setup() {
+  [[ ${CURSOR_DOCKER_ROOT:-} ]] ||
+    die 'CURSOR_DOCKER_ROOT is not set' \
+        'Try: source /path/to/cursor-docker/.rc'
+  root=$CURSOR_DOCKER_ROOT
+  [[ -d $root ]] ||
+    die "CURSOR_DOCKER_ROOT is not a directory: $root"
+  { [[ -f $root/Makefile ]] &&
+    [[ -f $root/Dockerfile ]]
+  } || die "CURSOR_DOCKER_ROOT is not the cursor-docker project: $root"
+
+  repo=${1:-}
+  [[ $repo ]] ||
+    die 'No repo directory provided'
+  [[ -d $repo ]] ||
+    die "Repo directory does not exist: $repo"
+  gitdir=$(cd "$repo" && git rev-parse --git-common-dir 2>/dev/null)
+  [[ $gitdir ]] ||
+    die "Repo is not a git repository: $repo"
+  [[ -d $gitdir ]] ||
+    die "Git directory does not exist: $gitdir"
+  [[ $gitdir == *.git && -d $gitdir ]] ||
+    die "Git directory is not a git repository: $gitdir"
+  repo=$(cd "$repo" && pwd -P)
+  gitdir=$(cd "$gitdir" && pwd -P)
+}
+
+die() {
+  local msg=${1:-' died'}; shift
+  msg="Error: $msg"
+  printf '%s\n' "$msg" "$@" >&2
+  exit 1
+}
+
+main "$@"

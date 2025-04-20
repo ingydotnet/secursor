@@ -1,0 +1,10 @@
+# shellcheck shell=bash
+
+CURSOR_DOCKER_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd -P)
+
+[[ :$PATH: == *:"$CURSOR_DOCKER_ROOT/bin":* ]] ||
+  PATH=$CURSOR_DOCKER_ROOT/bin:$PATH
+
+export CURSOR_DOCKER_ROOT PATH
+
+# vim: ft=sh:
