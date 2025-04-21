@@ -23,25 +23,13 @@ CURSOR-SERVER := $T/cursor-server
 CURSOR-CLIENT := $T/cursor-client
 CURSOR-LOG := $(TMP)/cursor.log
 
-CONFIG := .cursor-docker/config.yaml
-
 CURSOR-VERSION := latest
-ifneq (,$(wildcard $(CONFIG)))
 
-  ifeq (,$(wildcard $(YS)))
-    O := $(shell set -x; export PATH=$(PATH); curl -s 'https://yamlscript.org/install' | BIN=1 VERSION=$(YS-VERSION) bash)
-  endif
-
-  val := $(shell ys '.cursor.version' < $(CONFIG))
-  ifneq (,$(val))
-    CURSOR-VERSION := $(val)
-  endif
-
-  val := $(shell ys '.apt-get' < $(CONFIG))
-  ifneq (,$(val))
-    APT-GET := $(val)
-  endif
+CONFIG := $(shell TMPDIR=$(TMPDIR) $$CURSOR_DOCKER_ROOT/bin/cursor-docker-config)
+ifeq (,$(CONFIG))
+$(error Error in cursor-docker config files)
 endif
+include $(CONFIG)
 
 cursor: $(CURSOR-CLIENT)
 

@@ -3,6 +3,11 @@
 set -euo pipefail
 
 main() (
+  if [[ ${1-} == --* ]]; then
+    action $1
+    exit
+  fi
+
   [[ $# -gt 0 ]] || set -- "$(pwd -P)"
 
   setup "$@"; shift
@@ -16,6 +21,22 @@ main() (
   make -e -f "$root/Makefile" cursor "$@"
 )
 
+action() (
+  setup .
+  case $1 in
+    --stop)
+      make -e -f "$root/Makefile" stop-server
+      ;;
+    --rebuild)
+      make -e -f "$root/Makefile" stop-server
+      rm -fr "$gitdir/.ext"
+      cursor-docker
+      ;;
+    *)
+      die "Unknown action flag: $1";;
+  esac
+)
+
 setup() {
   [[ ${CURSOR_DOCKER_ROOT:-} ]] ||
     die 'CURSOR_DOCKER_ROOT is not set' \
@@ -27,7 +48,7 @@ setup() {
     [[ -f $root/Dockerfile ]]
   } || die "CURSOR_DOCKER_ROOT is not the cursor-docker project: $root"
 
-  repo=${1:-}
+  repo=$1
   [[ $repo ]] ||
     die 'No repo directory provided'
   [[ -d $repo ]] ||

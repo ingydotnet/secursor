@@ -1,0 +1,32 @@
+#!/usr/bin/env ys-0
+
+home-config =: "$(ENV.HOME)/.cursor-docker/config.yaml"
+local-config =: "$CWD/.cursor-docker/config.yaml"
+
+home =:
+  if home-config:fs-f:
+    load: home-config
+    else:: {}
+
+local =:
+  if local-config:fs-f:
+    load: local-config
+    else:: {}
+
+config =::
+  cursor::
+    merge:
+      home.cursor local.cursor
+  apt-get::
+    joins: +[
+      home.apt-get
+      local.apt-get
+      ]
+
+config-mk =: sh-out("mktemp $(ENV.TMPDIR)/XXXXXX.mk")
+
+write config-mk: |
+  CURSOR-VERSION := $(config.cursor.version || 'latest')
+  APT-GET := $(config.apt-get ||| '')
+
+say: config-mk

@@ -21,7 +21,6 @@ PREFIX := $(GIT-EXT)
 CACHE  := $(GIT-EXT)/cache
 TMPDIR := $(GIT-EXT)/tmp
 TARGET := $(GIT-EXT)/target
-export PREFIX TMPDIR
 ifeq (,$(wildcard $(CACHE)))
 $(shell mkdir -p $(CACHE))
 endif
@@ -32,7 +31,9 @@ ifeq (,$(wildcard $(TARGET)))
 $(shell mkdir -p $(TARGET))
 endif
 
-override export PATH := $(PREFIX)/bin:$(PATH)
+override PATH := $(PREFIX)/bin:$(PATH)
+
+export PATH PREFIX TMPDIR
 
 USER-UID := $(shell id -u)
 USER-GID := $(shell id -g)

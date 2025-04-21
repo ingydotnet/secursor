@@ -7,9 +7,9 @@ ARG APT
 
 # Install necessary dependencies
 RUN apt-get update \
+ && apt-get install -y apt-utils \
  && DEBIAN_FRONTEND=noninteractive \
     apt-get install -y \
-        apt-utils \
         build-essential \
         curl \
         fuse3 \
@@ -34,13 +34,16 @@ RUN apt-get update \
         libxshmfence1 \
         libxss1 \
         libxtst6 \
+        locales \
         sudo \
-        tree \
         wget \
         xz-utils \
         vim \
         $APT \
  && true
+
+ENV LANG=en_US.UTF-8
+RUN locale-gen $LANG
 
 RUN curl https://getys.org/ys | bash
 
