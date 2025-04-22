@@ -1,4 +1,6 @@
-* Need secure ssh access:
+* Set `CURSOR_DOCKER_ROOT` based on BASH_SOURCE if called directly
+* Get working on macOS if possible
+* Need secure ssh access, at least to repos:
   * See https://docs.github.com/en/authentication/connecting-to-github-with-ssh/managing-deploy-keys
 * Push base docker image for faster builds
 

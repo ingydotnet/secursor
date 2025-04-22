@@ -18,13 +18,13 @@ Usage: cursor-docker [options] [repo]
 
 Options:
   --start         Start the container (default)
-  --stop          Stop the container
-  --restart       Restart the container
-  --rebuild       Rebuild the container image
+  -S, --stop      Stop the container
+  -R, --restart   Restart the container
+  -B, --rebuild   Rebuild the container image
   -h, --help      Show this help message
   -v, --version   Show the version
 $ cd my-project-git-repo
-$ cursor-docker   # Starts the Cursor app
+$ cursor-docker   # Starts the Cursor VSCode application
 ```
 
 
@@ -63,10 +63,10 @@ https://invariantlabs.ai/blog/whatsapp-mcp-exploited)?
 If Cursor is an agentic AI tool that acts on my behalf with access to my machine
 and thus everything my machine can access, what could go wrong?
 
-What
+What if we launched Cursor from an already sandboxed environment?
+A machine that had exactly what we needed for successful dev and nothing more?
 
-
-This project aims to mitigate those risks by:
+The `cursor-docker` project aims to mitigate those risks by:
 
 - Running Cursor in an isolated container with limited filesystem access
 - Preventing access to sensitive host files and directories
@@ -129,18 +129,39 @@ directory of your repo directory.
 
 ## Configuration
 
-You can add a `.cursor-docker/config.yaml` file like this to your project:
+You can add a `~/.cursor-docker/config.yaml` file like this to your host or a
+`./.cursor-docker/config.yaml` project repo.
+
+Here's an example:
 
 ```yaml
 cursor:
   version: 0.48.0
 
 apt-get:
-  figlet
   jq
+  silversearcher-ag
+  tig
+  tmate
+  tree
 ```
 
+The `$HOME` and local configs will be merged with the local one taking
+precedence.
 By default this uses the latest released version of Cursor.
+
+
+## Using Cursor with [tmate](https://tmate.io/)
+
+The `tmate` command is a fork of `tmux` that gives you a sharable ssh command
+or web URL to share with someone for pair programming.
+It's the easiest way to pair program with someone you trust.
+
+If you don't trust them fully, you risk them do bad stuff to your host machine.
+
+With cursor-docker that risk is much more mitigated, as they only have access
+to your sandboxed content.
+
 
 
 ## Authors

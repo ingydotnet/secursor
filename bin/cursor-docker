@@ -7,12 +7,12 @@ help() (
 Usage: cursor-docker [options] [repo]
 
 Options:
-  --start         Start the container (default)
-  --stop          Stop the container
-  --restart       Restart the container
-  --rebuild       Rebuild the container image
-  -h, --help      Show this help message
-  -v, --version   Show the version
+      --start         Start the container (default)
+  -S, --stop          Stop the container
+  -R, --restart       Restart the container
+  -B, --rebuild       Rebuild the container image
+  -h, --help          Show this help message
+  -v, --version       Show the version
 
 ...
 )
@@ -54,13 +54,14 @@ action() (
     --start)
       make -e -f "$root/Makefile" start
       ;;
-    --stop)
+    -S|--stop)
       make -e -f "$root/Makefile" stop
       ;;
-    --restart)
+    -R|--restart)
       make -e -f "$root/Makefile" stop start
       ;;
-    --rebuild)
+    -B|--rebuild)
+      setup "$@"
       make -e -f "$root/Makefile" stop
       rm -fr "$gitdir/.ext"
       cursor-docker "$@"
