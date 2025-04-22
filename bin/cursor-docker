@@ -2,9 +2,26 @@
 
 set -euo pipefail
 
+help() (
+  cat <<'...'
+Usage: cursor-docker [options] [repo]
+
+Options:
+  --start         Start the container (default)
+  --stop          Stop the container
+  --restart       Restart the container
+  --rebuild       Rebuild the container image
+  -h, --help      Show this help message
+  -v, --version   Show the version
+
+...
+)
+
 main() (
-  if [[ ${1-} == --* ]]; then
-    action $1
+  init
+
+  if [[ ${1-} == -* ]]; then
+    action "$@"
     exit
   fi
 
@@ -18,30 +35,49 @@ main() (
   export CURSOR_DOCKER_DOCKERFILE=$root/Dockerfile
   export CURSOR_DOCKER_ARGS="$*"
 
-  make -e -f "$root/Makefile" cursor "$@"
+  make -e -f "$root/Makefile" start "$@"
 )
 
 action() (
-  setup .
-  case $1 in
+  action=$1; shift
+  [[ $# -gt 0 ]] || set -- "$(pwd -P)"
+
+  case $action in
+    -h|--help)
+      help
+      exit
+      ;;
+    -v|--version)
+      make --no-print-directory -f "$root/Makefile" version
+      exit
+      ;;
+    --start)
+      make -e -f "$root/Makefile" start
+      ;;
     --stop)
-      make -e -f "$root/Makefile" stop-server
+      make -e -f "$root/Makefile" stop
+      ;;
+    --restart)
+      make -e -f "$root/Makefile" stop start
       ;;
     --rebuild)
-      make -e -f "$root/Makefile" stop-server
+      make -e -f "$root/Makefile" stop
       rm -fr "$gitdir/.ext"
-      cursor-docker
+      cursor-docker "$@"
       ;;
     *)
       die "Unknown action flag: $1";;
   esac
 )
 
-setup() {
+init() {
   [[ ${CURSOR_DOCKER_ROOT:-} ]] ||
     die 'CURSOR_DOCKER_ROOT is not set' \
         'Try: source /path/to/cursor-docker/.rc'
   root=$CURSOR_DOCKER_ROOT
+}
+
+setup() {
   [[ -d $root ]] ||
     die "CURSOR_DOCKER_ROOT is not a directory: $root"
   { [[ -f $root/Makefile ]] &&

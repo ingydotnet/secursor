@@ -4,6 +4,30 @@ cursor-docker
 Customizable Docker sandbox for running the Cursor AI editor securely
 
 
+## Status
+
+This project is brand new as of April 21, 2025.
+It has only been tested from an Ubuntu Linux host.
+
+
+## Synopsis
+
+```bash
+$ cursor-docker -h
+Usage: cursor-docker [options] [repo]
+
+Options:
+  --start         Start the container (default)
+  --stop          Stop the container
+  --restart       Restart the container
+  --rebuild       Rebuild the container image
+  -h, --help      Show this help message
+  -v, --version   Show the version
+$ cd my-project-git-repo
+$ cursor-docker   # Starts the Cursor app
+```
+
+
 ## Description
 
 This project provides a complete Docker-based sandbox environment for running
@@ -11,11 +35,47 @@ the Cursor AI editor.
 It sets up a secure containerized environment with all necessary dependencies
 and configuration to run Cursor smoothly.
 
+### Rationale
 
-## Status
+The Cursor AI editor is a powerful tool that integrates AI capabilities directly
+into your development workflow.
+However, running any application that makes external API calls and has access to
+your code raises security concerns.
 
-This project is brand new as of April 21, 2025.
-It has only been tested from an Ubuntu Linux host.
+Cursor has a "YOLO mode" that turns off prompting before taking an action.
+While this is mode is off by default, once you've tried it you'll never want to
+turn it off.
+Even if you did turn it off you'd certainly get tired of thinking through each
+prompt and likely you'd eventually approve something you didn't actually want.
+
+Cursor has sandboxing built in, but there's at least a couple issues there:
+
+* It often doesn't work out of the box on Linux, and the most common "fix" you
+  see on the net is to start Cursor with the `--no-sandbox` option.
+* You need to trust that Cursor (not open source) sandboxing is doing what you
+  expect.
+
+Is cursor able to read anything on my disk including my private SSH keys?
+
+Can Cursor be [exploited by other MCPs](
+https://invariantlabs.ai/blog/whatsapp-mcp-exploited)?
+
+If Cursor is an agentic AI tool that acts on my behalf with access to my machine
+and thus everything my machine can access, what could go wrong?
+
+What
+
+
+This project aims to mitigate those risks by:
+
+- Running Cursor in an isolated container with limited filesystem access
+- Preventing access to sensitive host files and directories
+- Controlling network access and API endpoints
+- Preserving user settings and configuration in a safe way
+- Making the security boundaries explicit and auditable
+
+The goal is to let developers leverage Cursor's AI capabilities while
+maintaining control over what the application can access and do.
 
 
 ## Features
@@ -32,15 +92,18 @@ It has only been tested from an Ubuntu Linux host.
 - Docker
 - X11 server running on host
 - FUSE support
-- Git
-- GNU make
+- `git`
+- GNU `make`
+- `/bin/bash`
+- `curl`
 
 
 ## Installation
 
 ```bash
 git clone https://github.com/ingydotnet/cursor-docker
-source cursor/.rc  # Add to your shell profile
+# Add this line to your shell profile:
+source /path/to/cursor-docker/.rc
 ```
 
 

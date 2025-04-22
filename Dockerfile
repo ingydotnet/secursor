@@ -39,7 +39,6 @@ RUN apt-get update \
         wget \
         xz-utils \
         vim \
-        $APT \
  && true
 
 ENV LANG=en_US.UTF-8
@@ -72,6 +71,9 @@ RUN set -x \
         ln -fs /root/$d; \
     done \
  && true
+
+RUN DEBIAN_FRONTEND=noninteractive \
+    apt-get install -y $APT
 
 USER $USER
 

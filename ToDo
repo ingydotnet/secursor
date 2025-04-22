@@ -1,0 +1,8 @@
+* Need secure ssh access:
+  * See https://docs.github.com/en/authentication/connecting-to-github-with-ssh/managing-deploy-keys
+* Push base docker image for faster builds
+
+
+## Links
+
+* https://iven.in/posts/Cursor-Editor-with-Sandbox/

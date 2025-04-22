@@ -4,24 +4,8 @@ endif
 
 include $(CURSOR_DOCKER_ROOT)/.make/init.mk
 
-ROOT := $(GIT-ROOT)
-C := $(CACHE)
-T := $(TARGET)
-TMP := $(TMPDIR)
-
-YS-VERSION := 0.1.96
-YS := $(PREFIX)/bin/ys-$(YS-VERSION)
-
-DOCKER-IMAGE := cursor-image:latest
-CURSOR-JSON-FILE := $C/cursor-version-history.json
-CURSOR-JSON-URL := \
-  https://github.com/oslook/cursor-ai-downloads/raw/main/version-history.json
-CURSOR-URL-FILE := $C/cursor-url
-CURSOR-APP := $C/Cursor.AppImage
-CURSOR-BUILD := $T/cursor-build
-CURSOR-SERVER := $T/cursor-server
-CURSOR-CLIENT := $T/cursor-client
-CURSOR-LOG := $(TMP)/cursor.log
+CURSOR-DOCKER-VERSION := 0.1.0
+V := $(CURSOR-DOCKER-VERSION)
 
 CURSOR-VERSION := latest
 
@@ -31,37 +15,62 @@ $(error Error in cursor-docker config files)
 endif
 include $(CONFIG)
 
-cursor: $(CURSOR-CLIENT)
+ROOT := $(GIT-ROOT)
+C := $(CACHE)
+T := $(TARGET)
+TMP := $(TMPDIR)
+NAME := $(shell basename $(ROOT))
+N := $(NAME)
 
-build: $(CURSOR-BUILD)
+YS-VERSION := 0.1.96
+YS := $(PREFIX)/bin/ys-$(YS-VERSION)
 
-shell: server
-	docker exec -it \
-	  -w $(ROOT) \
-	  cursor-server \
-	  bash
+DOCKER-IMAGE := cursor-image-$N:$V
+VERSIONS-FILE := $C/cursor-version-history.json
+VERSIONS-FILE-URL := \
+  https://github.com/oslook/cursor-ai-downloads/raw/main/version-history.json
+CURSOR-URL-FILE := $C/cursor-url
+CURSOR-BINARY := $C/Cursor-$(CURSOR-VERSION).AppImage
+BUILD-FILE := $T/cursor-build-$N
+CONTAINER-NAME := cursor-docker-$N
+CONTAINER-FILE := $T/$(CONTAINER-NAME)
+CURSOR-FILE := $T/cursor-client-$N
+LOG-FILE := $(TMP)/cursor.log
 
-server: $(CURSOR-SERVER)
+APPARMOR_PROFILE ?= unconfined
+
+ifneq (0,$(shell docker ps --format '{{.Names}}' | grep -q $(CONTAINER-NAME); echo $$?))
+_ := $(shell rm -f $(CURSOR-FILE) $(CONTAINER-FILE))
+endif
+
+version:
+	@echo cursor-docker v$(CURSOR-DOCKER-VERSION)
+
+start: $(CURSOR-FILE)
 
 stop:
-	-docker kill cursor-client
-	$(RM) $(CURSOR-CLIENT)
-
-stop-server: stop
+	-docker kill $(CONTAINER-NAME)
 	xhost -local:docker
-	-docker kill cursor-server
-	$(RM) $(CURSOR-SERVER)
+	$(RM) $(CURSOR-FILE) $(CONTAINER-FILE)
+
+build: $(BUILD-FILE)
+
+shell: $(CONTAINER-FILE)
+	docker exec -it \
+	  -w $(ROOT) \
+	  $(CONTAINER-NAME) \
+	  bash
 
 clean:
-	$(RM) $(CURSOR-BUILD)
+	$(RM) $(BUILD-FILE)
 
-realclean: stop-server
+realclean: stop-container
 
 distclean: realclean
-	$(RM) -r $(CACHE)
+	$(RM) -r $(GIT-EXT)
 
-$(CURSOR-BUILD):
-	-docker kill cursor-server
+$(BUILD-FILE):
+	-docker kill $(CONTAINER-NAME)
 	$(RM) $@
 	docker build \
 	  -f $(CURSOR_DOCKER_ROOT)/Dockerfile \
@@ -73,31 +82,34 @@ $(CURSOR-BUILD):
 	  .
 	touch $@
 
-$(CURSOR-SERVER): $(CURSOR-APP) $(CURSOR-BUILD)
+$(CONTAINER-FILE): $(CURSOR-BINARY) $(BUILD-FILE)
 	$(RM) $@
 	touch $(TMP)/.bash_history
 	docker run -d --rm \
 	  --device /dev/fuse \
-	  --privileged \
+	  --cap-add SYS_ADMIN \
+	  --security-opt apparmor:$(APPARMOR_PROFILE) \
 	  --hostname=cursor-docker \
 	  -v /tmp/.X11-unix:/tmp/.X11-unix \
 	  -v $(TMP)/.bash_history:$(HOME)/.bash_history \
 	  -v $(HOME)/.config:$(HOME)/.config \
 	  -v $(HOME)/.cursor:$(HOME)/.cursor \
+	  -v $(HOME)/.cursor-docker:$(HOME)/.cursor-docker \
 	  -v $(ROOT):$(ROOT) \
 	  -v $<:/usr/bin/cursor \
 	  -e DISPLAY=$$DISPLAY \
-	  --name cursor-server \
+	  --name $(CONTAINER-NAME) \
 	  $(DOCKER-IMAGE) \
-	  sleep 999999999 > $@
+	  sleep infinity > $@
 
-$(CURSOR-CLIENT): $(CURSOR-SERVER)
+$(CURSOR-FILE): $(CONTAINER-FILE)
+	$(RM) $@
 	xhost +local:docker
 	docker exec -d -it \
 	  -e USER=$(USER) \
 	  -u $(USER) \
 	  -w $(ROOT) \
-	  cursor-server \
+	  $(CONTAINER-NAME) \
 	  bash -c '\
 	    sudo service dbus start; \
 	    export XDG_RUNTIME_DIR=/run/user/$$(id -u); \
@@ -109,17 +121,21 @@ $(CURSOR-CLIENT): $(CURSOR-SERVER)
 	    --address=$$DBUS_SESSION_BUS_ADDRESS \
 	    --nofork --nopidfile --syslog-only & \
 	    cursor --no-sandbox .'
+	touch $@
 
-$(CURSOR-APP): $(CURSOR-URL-FILE)
+$(CURSOR-BINARY): $(CURSOR-URL-FILE)
 	curl -s $$(< $<) > $@
 	chmod +x $@
 	touch $@
 
-$(CURSOR-URL-FILE): $(CURSOR-JSON-FILE) $(YS)
+define get-cursor
+endef
+
+$(CURSOR-URL-FILE): $(VERSIONS-FILE) $(YS)
 	ys '(_.versions.drop-while(\(_.version != "$(CURSOR-VERSION)")).first() ||| _.versions.first()).platforms.linux-x64 ||| die("Cannot find Cursor version $(CURSOR-VERSION)")' < $< > $@
 
-$(CURSOR-JSON-FILE):
-	curl -sL $(CURSOR-JSON-URL) > $@
+$(VERSIONS-FILE):
+	curl -sL $(VERSIONS-FILE-URL) > $@
 
 $(YS):
 	curl -s https://yamlscript.org/install | \
