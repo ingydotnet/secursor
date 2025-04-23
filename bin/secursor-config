@@ -1,7 +1,7 @@
 #!/usr/bin/env ys-0
 
-home-config =: "$(ENV.HOME)/.cursor-docker/config.yaml"
-local-config =: "$CWD/.cursor-docker/config.yaml"
+home-config =: "$(ENV.HOME)/.secursor/config.yaml"
+local-config =: "$CWD/.secursor/config.yaml"
 
 home =:
   if home-config:fs-f:

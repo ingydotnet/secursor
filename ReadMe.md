@@ -1,7 +1,7 @@
-cursor-docker
-=============
+SeCursor
+========
 
-Customizable Docker sandbox for running the Cursor AI editor securely
+Sandboxed Environment Cursor AI Editor
 
 
 ## Status
@@ -13,8 +13,8 @@ It has only been tested from an Ubuntu Linux host.
 ## Synopsis
 
 ```bash
-$ cursor-docker -h
-Usage: cursor-docker [options] [repo]
+$ SeCursor -h
+Usage: SeCursor [options] [repo]
 
 Options:
   --start         Start the container (default)
@@ -24,7 +24,7 @@ Options:
   -h, --help      Show this help message
   -v, --version   Show the version
 $ cd my-project-git-repo
-$ cursor-docker   # Starts the Cursor VSCode application
+$ SeCursor   # Starts the Cursor VSCode application
 ```
 
 
@@ -66,7 +66,9 @@ and thus everything my machine can access, what could go wrong?
 What if we launched Cursor from an already sandboxed environment?
 A machine that had exactly what we needed for successful dev and nothing more?
 
-The `cursor-docker` project aims to mitigate those risks by:
+That's SeCursor!
+
+The SeCursor project aims to mitigate risks by:
 
 - Running Cursor in an isolated container with limited filesystem access
 - Preventing access to sensitive host files and directories
@@ -101,16 +103,16 @@ maintaining control over what the application can access and do.
 ## Installation
 
 ```bash
-git clone https://github.com/ingydotnet/cursor-docker
+git clone https://github.com/ingydotnet/secursor
 # Add this line to your shell profile:
-source /path/to/cursor-docker/.rc
+source /path/to/secursor/.rc
 ```
 
 
 ## Usage
 
 ```bash
-cursor-docker [<directory>]
+secursor [<directory>]
 ```
 
 This command will build a custom Docker image with a user matching your `$USER`.
@@ -129,8 +131,8 @@ directory of your repo directory.
 
 ## Configuration
 
-You can add a `~/.cursor-docker/config.yaml` file like this to your host or a
-`./.cursor-docker/config.yaml` project repo.
+You can add a `~/.secursor/config.yaml` file like this to your host or a
+`./.secursor/config.yaml` project repo.
 
 Here's an example:
 
@@ -151,7 +153,7 @@ precedence.
 By default this uses the latest released version of Cursor.
 
 
-## Using Cursor with [tmate](https://tmate.io/)
+## Using SeCursor with [tmate](https://tmate.io/)
 
 The `tmate` command is a fork of `tmux` that gives you a sharable ssh command
 or web URL to share with someone for pair programming.
@@ -159,7 +161,7 @@ It's the easiest way to pair program with someone you trust.
 
 If you don't trust them fully, you risk them do bad stuff to your host machine.
 
-With cursor-docker that risk is much more mitigated, as they only have access
+With SeCursor that risk is much more mitigated, as they only have access
 to your sandboxed content.
 
 

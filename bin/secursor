@@ -4,7 +4,7 @@ set -euo pipefail
 
 help() (
   cat <<'...'
-Usage: cursor-docker [options] [repo]
+Usage: secursor [options] [repo]
 
 Options:
       --start         Start the container (default)
@@ -32,8 +32,8 @@ main() (
   cd "$repo" ||
     die "Failed to cd to repo: $repo"
 
-  export CURSOR_DOCKER_DOCKERFILE=$root/Dockerfile
-  export CURSOR_DOCKER_ARGS="$*"
+  export SECURSOR_DOCKERFILE=$root/Dockerfile
+  export SECURSOR_ARGS="$*"
 
   make -e -f "$root/Makefile" start "$@"
 )
@@ -64,7 +64,7 @@ action() (
       setup "$@"
       make -e -f "$root/Makefile" stop
       rm -fr "$gitdir/.ext"
-      cursor-docker "$@"
+      secursor "$@"
       ;;
     *)
       die "Unknown action flag: $1";;
@@ -72,18 +72,18 @@ action() (
 )
 
 init() {
-  [[ ${CURSOR_DOCKER_ROOT:-} ]] ||
-    die 'CURSOR_DOCKER_ROOT is not set' \
-        'Try: source /path/to/cursor-docker/.rc'
-  root=$CURSOR_DOCKER_ROOT
+  [[ ${SECURSOR_ROOT:-} ]] ||
+    die 'SECURSOR_ROOT is not set' \
+        'Try: source /path/to/secursor/.rc'
+  root=$SECURSOR_ROOT
 }
 
 setup() {
   [[ -d $root ]] ||
-    die "CURSOR_DOCKER_ROOT is not a directory: $root"
+    die "SECURSOR_ROOT is not a directory: $root"
   { [[ -f $root/Makefile ]] &&
     [[ -f $root/Dockerfile ]]
-  } || die "CURSOR_DOCKER_ROOT is not the cursor-docker project: $root"
+  } || die "SECURSOR_ROOT is not the SeCursor project: $root"
 
   repo=$1
   [[ $repo ]] ||

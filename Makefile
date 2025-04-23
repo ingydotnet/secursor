@@ -1,17 +1,17 @@
-ifndef CURSOR_DOCKER_ROOT
-  $(error CURSOR_DOCKER_ROOT not set. Try: source .../cursor-docker/.rc)
+ifndef SECURSOR_ROOT
+  $(error SECURSOR_ROOT not set. Try: source .../secursor/.rc)
 endif
 
-include $(CURSOR_DOCKER_ROOT)/.make/init.mk
+include $(SECURSOR_ROOT)/.make/init.mk
 
-CURSOR-DOCKER-VERSION := 0.1.0
-V := $(CURSOR-DOCKER-VERSION)
+SECURSOR-VERSION := 0.1.0
+V := $(SECURSOR-VERSION)
 
 CURSOR-VERSION := latest
 
-CONFIG := $(shell TMPDIR=$(TMPDIR) $$CURSOR_DOCKER_ROOT/bin/cursor-docker-config)
+CONFIG := $(shell TMPDIR=$(TMPDIR) $$SECURSOR_ROOT/bin/secursor-config)
 ifeq (,$(CONFIG))
-$(error Error in cursor-docker config files)
+$(error Error in SeCursor config files)
 endif
 include $(CONFIG)
 
@@ -25,33 +25,33 @@ N := $(NAME)
 YS-VERSION := 0.1.96
 YS := $(PREFIX)/bin/ys-$(YS-VERSION)
 
-DOCKER-IMAGE := cursor-image-$N:$V
+DOCKER-IMAGE := secursor-$N:$V
 VERSIONS-FILE := $C/cursor-version-history.json
 VERSIONS-FILE-URL := \
   https://github.com/oslook/cursor-ai-downloads/raw/main/version-history.json
 CURSOR-URL-FILE := $C/cursor-url
 CURSOR-BINARY := $C/Cursor-$(CURSOR-VERSION).AppImage
-BUILD-FILE := $T/cursor-build-$N
-CONTAINER-NAME := cursor-docker-$N
+BUILD-FILE := $T/secursor-build-$N
+CONTAINER-NAME := secursor-$N
 CONTAINER-FILE := $T/$(CONTAINER-NAME)
-CURSOR-FILE := $T/cursor-client-$N
-LOG-FILE := $(TMP)/cursor.log
+SECURSOR-FILE := $T/secursor-client-$N
+LOG-FILE := $(TMP)/secursor.log
 
 APPARMOR_PROFILE ?= unconfined
 
 ifneq (0,$(shell docker ps --format '{{.Names}}' | grep -q $(CONTAINER-NAME); echo $$?))
-_ := $(shell rm -f $(CURSOR-FILE) $(CONTAINER-FILE))
+_ := $(shell rm -f $(SECURSOR-FILE) $(CONTAINER-FILE))
 endif
 
 version:
-	@echo cursor-docker v$(CURSOR-DOCKER-VERSION)
+	@echo SeCursor v$(SECURSOR-VERSION)
 
-start: $(CURSOR-FILE)
+start: $(SECURSOR-FILE)
 
 stop:
 	-docker kill $(CONTAINER-NAME)
 	xhost -local:docker
-	$(RM) $(CURSOR-FILE) $(CONTAINER-FILE)
+	$(RM) $(SECURSOR-FILE) $(CONTAINER-FILE)
 
 build: $(BUILD-FILE)
 
@@ -73,7 +73,7 @@ $(BUILD-FILE):
 	-docker kill $(CONTAINER-NAME)
 	$(RM) $@
 	docker build \
-	  -f $(CURSOR_DOCKER_ROOT)/Dockerfile \
+	  -f $(SECURSOR_ROOT)/Dockerfile \
 	  --build-arg USER=$$USER \
 	  --build-arg UID=$(USER-UID) \
 	  --build-arg GID=$(USER-GID) \
@@ -89,12 +89,12 @@ $(CONTAINER-FILE): $(CURSOR-BINARY) $(BUILD-FILE)
 	  --device /dev/fuse \
 	  --cap-add SYS_ADMIN \
 	  --security-opt apparmor:$(APPARMOR_PROFILE) \
-	  --hostname=cursor-docker \
+	  --hostname=SeCursor \
 	  -v /tmp/.X11-unix:/tmp/.X11-unix \
 	  -v $(TMP)/.bash_history:$(HOME)/.bash_history \
 	  -v $(HOME)/.config:$(HOME)/.config \
 	  -v $(HOME)/.cursor:$(HOME)/.cursor \
-	  -v $(HOME)/.cursor-docker:$(HOME)/.cursor-docker \
+	  -v $(HOME)/.secursor:$(HOME)/.secursor \
 	  -v $(ROOT):$(ROOT) \
 	  -v $<:/usr/bin/cursor \
 	  -e DISPLAY=$$DISPLAY \
@@ -102,7 +102,7 @@ $(CONTAINER-FILE): $(CURSOR-BINARY) $(BUILD-FILE)
 	  $(DOCKER-IMAGE) \
 	  sleep infinity > $@
 
-$(CURSOR-FILE): $(CONTAINER-FILE)
+$(SECURSOR-FILE): $(CONTAINER-FILE)
 	$(RM) $@
 	xhost +local:docker
 	docker exec -d -it \

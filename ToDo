@@ -1,4 +1,5 @@
-* Set `CURSOR_DOCKER_ROOT` based on BASH_SOURCE if called directly
+* Set `SECURSOR_ROOT` based on BASH_SOURCE if called directly
+* Combine docker run and exec
 * Get working on macOS if possible
 * Need secure ssh access, at least to repos:
   * See https://docs.github.com/en/authentication/connecting-to-github-with-ssh/managing-deploy-keys
