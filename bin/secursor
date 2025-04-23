@@ -83,7 +83,7 @@ setup() {
     die "SECURSOR_ROOT is not a directory: $root"
   { [[ -f $root/Makefile ]] &&
     [[ -f $root/Dockerfile ]]
-  } || die "SECURSOR_ROOT is not the SeCursor project: $root"
+  } || die "SECURSOR_ROOT is not the SECursor project: $root"
 
   repo=$1
   [[ $repo ]] ||

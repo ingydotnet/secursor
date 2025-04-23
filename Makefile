@@ -11,7 +11,7 @@ CURSOR-VERSION := latest
 
 CONFIG := $(shell TMPDIR=$(TMPDIR) $$SECURSOR_ROOT/bin/secursor-config)
 ifeq (,$(CONFIG))
-$(error Error in SeCursor config files)
+$(error Error in SECursor config files)
 endif
 include $(CONFIG)
 
@@ -44,7 +44,7 @@ _ := $(shell rm -f $(SECURSOR-FILE) $(CONTAINER-FILE))
 endif
 
 version:
-	@echo SeCursor v$(SECURSOR-VERSION)
+	@echo SECursor v$(SECURSOR-VERSION)
 
 start: $(SECURSOR-FILE)
 
@@ -89,7 +89,7 @@ $(CONTAINER-FILE): $(CURSOR-BINARY) $(BUILD-FILE)
 	  --device /dev/fuse \
 	  --cap-add SYS_ADMIN \
 	  --security-opt apparmor:$(APPARMOR_PROFILE) \
-	  --hostname=SeCursor \
+	  --hostname=SECursor \
 	  -v /tmp/.X11-unix:/tmp/.X11-unix \
 	  -v $(TMP)/.bash_history:$(HOME)/.bash_history \
 	  -v $(HOME)/.config:$(HOME)/.config \
