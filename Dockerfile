@@ -48,6 +48,7 @@ RUN curl https://getys.org/ys | bash
 
 RUN set -x \
  && userdel ubuntu \
+ && groupdel dialout \
  && groupadd -g $GID $USER \
  && useradd -rm \
         -u $UID \
