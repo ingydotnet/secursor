@@ -1,21 +1,18 @@
-ifndef SECURSOR_ROOT
-  $(error SECURSOR_ROOT not set. Try: source .../secursor/.rc)
-endif
+include .make/init.mk
 
-include $(SECURSOR_ROOT)/.make/init.mk
+ROOT := $(GIT-ROOT)
 
 SECURSOR-VERSION := 0.1.0
 V := $(SECURSOR-VERSION)
 
 CURSOR-VERSION := latest
 
-CONFIG := $(shell TMPDIR=$(TMPDIR) $$SECURSOR_ROOT/bin/secursor-config)
+CONFIG := $(shell TMPDIR=$(TMPDIR) $(ROOT)/bin/secursor-config)
 ifeq (,$(CONFIG))
 $(error Error in SECursor config files)
 endif
 include $(CONFIG)
 
-ROOT := $(GIT-ROOT)
 C := $(CACHE)
 T := $(TARGET)
 TMP := $(TMPDIR)
@@ -73,7 +70,7 @@ $(BUILD-FILE):
 	-docker kill $(CONTAINER-NAME)
 	$(RM) $@
 	docker build \
-	  -f $(SECURSOR_ROOT)/Dockerfile \
+	  -f $(ROOT)/Dockerfile \
 	  --build-arg USER=$$USER \
 	  --build-arg UID=$(USER-UID) \
 	  --build-arg GID=$(USER-GID) \

@@ -23,7 +23,7 @@ config =::
       local.apt-get
       ]
 
-config-mk =: sh-out("mktemp $(ENV.TMPDIR)/XXXXXX.mk")
+config-mk =: sh-out("mktemp $(ENV.TMPDIR)/XXXXXX")
 
 write config-mk: |
   CURSOR-VERSION := $(config.cursor.version || 'latest')

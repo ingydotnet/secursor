@@ -72,19 +72,13 @@ action() (
 )
 
 init() {
-  [[ ${SECURSOR_ROOT:-} ]] ||
-    die 'SECURSOR_ROOT is not set' \
-        'Try: source /path/to/secursor/.rc'
-  root=$SECURSOR_ROOT
+  local prog=${BASH_SOURCE[0]}
+  root=$(cd "$(dirname "$prog")/.." && pwd -P)
+  [[ -f $root/ReadMe.md && $(head -n 1 "$root/ReadMe.md") == 'SECursor' ]] ||
+    die "'$prog' is not in a clone of the SECursor repository"
 }
 
 setup() {
-  [[ -d $root ]] ||
-    die "SECURSOR_ROOT is not a directory: $root"
-  { [[ -f $root/Makefile ]] &&
-    [[ -f $root/Dockerfile ]]
-  } || die "SECURSOR_ROOT is not the SECursor project: $root"
-
   repo=$1
   [[ $repo ]] ||
     die 'No repo directory provided'
