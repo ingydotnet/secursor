@@ -44,8 +44,6 @@ RUN apt-get update \
 ENV LANG=en_US.UTF-8
 RUN locale-gen $LANG
 
-RUN curl https://getys.org/ys | bash
-
 RUN set -x \
  && userdel ubuntu \
  && groupadd -g $GID $USER \

@@ -9,7 +9,7 @@ V := $(SECURSOR-VERSION)
 
 CURSOR-VERSION := latest
 
-CONFIG := $(shell TMPDIR=$(TMPDIR) $$SECURSOR_ROOT/bin/secursor-config)
+CONFIG := $(shell TMPDIR=$(TMPDIR) $$SECURSOR_ROOT/sbin/secursor-config)
 ifeq (,$(CONFIG))
 $(error Error in SECursor config files)
 endif
@@ -138,5 +138,4 @@ $(VERSIONS-FILE):
 	curl -sL $(VERSIONS-FILE-URL) > $@
 
 $(YS):
-	curl -s https://yamlscript.org/install | \
-	  BIN=1 VERSION=$(YS-VERSION) bash
+	BIN=1 VERSION=$(YS-VERSION) $(SECURSOR_ROOT)/sbin/install-ys
