@@ -2,7 +2,7 @@ SECURSOR_ROOT ?= $(shell pwd -P)
 
 include $(SECURSOR_ROOT)/.make/init.mk
 
-SECURSOR-VERSION := 0.1.0
+SECURSOR-VERSION := 0.1.1
 V := $(SECURSOR-VERSION)
 
 CURSOR-VERSION := latest
