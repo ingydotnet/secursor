@@ -1,6 +1,4 @@
-ifndef SECURSOR_ROOT
-  $(error SECURSOR_ROOT not set. Try: source .../secursor/.rc)
-endif
+SECURSOR_ROOT ?= $(shell pwd -P)
 
 include $(SECURSOR_ROOT)/.make/init.mk
 
@@ -9,7 +7,7 @@ V := $(SECURSOR-VERSION)
 
 CURSOR-VERSION := latest
 
-CONFIG := $(shell TMPDIR=$(TMPDIR) $$SECURSOR_ROOT/sbin/secursor-config)
+CONFIG := $(shell TMPDIR=$(TMPDIR) $(SECURSOR_ROOT)/sbin/secursor-config)
 ifeq (,$(CONFIG))
 $(error Error in SECursor config files)
 endif

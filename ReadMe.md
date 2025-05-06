@@ -105,7 +105,7 @@ maintaining control over what the application can access and do.
 ```bash
 git clone https://github.com/ingydotnet/secursor
 # Add this line to your shell profile:
-source /path/to/secursor/.rc
+export PATH=/path/to/secursor/bin:$PATH
 ```
 
 

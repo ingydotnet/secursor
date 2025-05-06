@@ -68,18 +68,17 @@ action() (
 )
 
 init() {
-  [[ ${SECURSOR_ROOT:-} ]] ||
-    die 'SECURSOR_ROOT is not set' \
-        'Try: source /path/to/secursor/.rc'
+  SECURSOR_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")/.." && pwd -P)
+  export SECURSOR_ROOT
   root=$SECURSOR_ROOT
 }
 
 setup() {
-  [[ -d $root ]] ||
-    die "SECURSOR_ROOT is not a directory: $root"
-  { [[ -f $root/Makefile ]] &&
-    [[ -f $root/Dockerfile ]]
-  } || die "SECURSOR_ROOT is not the SECursor project: $root"
+  { [[ -d $root ]] &&
+    [[ -f $root/Makefile ]] &&
+    [[ -f $root/Dockerfile ]] &&
+    [[ -x $root/bin/secursor ]]
+  } || die "${BASH_SOURCE[0]:-$0} can't be run. Report this error, please."
 
   repo=$1
   [[ $repo ]] ||
