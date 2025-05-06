@@ -17,10 +17,9 @@ $ SECursor -h
 Usage: SECursor [options] [repo]
 
 Options:
-  --start         Start the container (default)
-  -S, --stop      Stop the container
-  -R, --restart   Restart the container
-  -B, --rebuild   Rebuild the container image
+      --start     Start the editor (default)
+  -K, --kill      Kill the container
+  -R, --restart   Rebuild the image and restart
   -h, --help      Show this help message
   -v, --version   Show the version
 $ cd my-project-git-repo
@@ -34,6 +33,7 @@ This project provides a complete Docker-based sandbox environment for running
 the Cursor AI editor.
 It sets up a secure containerized environment with all necessary dependencies
 and configuration to run Cursor smoothly.
+
 
 ### Rationale
 
@@ -163,7 +163,6 @@ If you don't trust them fully, you risk them do bad stuff to your host machine.
 
 With SECursor that risk is much more mitigated, as they only have access
 to your sandboxed content.
-
 
 
 ## Authors

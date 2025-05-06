@@ -7,10 +7,9 @@ help() (
 Usage: secursor [options] [repo]
 
 Options:
-      --start         Start the container (default)
-  -S, --stop          Stop the container
-  -R, --restart       Restart the container
-  -B, --rebuild       Rebuild the container image
+      --start         Start the editor (default)
+  -K, --kill          Kill the editor container
+  -R, --restart       Rebuild the image and restart
   -h, --help          Show this help message
   -v, --version       Show the version
 
@@ -54,15 +53,12 @@ action() (
     --start)
       make -e -f "$root/Makefile" start
       ;;
-    -S|--stop)
-      make -e -f "$root/Makefile" stop
+    -K|--kill)
+      make -e -f "$root/Makefile" kill
       ;;
     -R|--restart)
-      make -e -f "$root/Makefile" stop start
-      ;;
-    -B|--rebuild)
       setup "$@"
-      make -e -f "$root/Makefile" stop
+      make -e -f "$root/Makefile" kill
       rm -fr "$gitdir/.ext"
       secursor "$@"
       ;;

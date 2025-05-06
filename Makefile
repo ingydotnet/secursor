@@ -34,24 +34,40 @@ CURSOR-BINARY := $C/Cursor-$(CURSOR-VERSION).AppImage
 BUILD-FILE := $T/secursor-build-$N
 CONTAINER-NAME := secursor-$N
 CONTAINER-FILE := $T/$(CONTAINER-NAME)
-SECURSOR-FILE := $T/secursor-client-$N
 LOG-FILE := $(TMP)/secursor.log
 
 APPARMOR_PROFILE ?= unconfined
 
 ifneq (0,$(shell docker ps --format '{{.Names}}' | grep -q $(CONTAINER-NAME); echo $$?))
-_ := $(shell rm -f $(SECURSOR-FILE) $(CONTAINER-FILE))
+_ := $(shell rm -f $(CONTAINER-FILE))
 endif
 
 version:
 	@echo SECursor v$(SECURSOR-VERSION)
 
-start: $(SECURSOR-FILE)
+start: $(CONTAINER-FILE)
+	xhost +local:docker
+	docker exec -d -it \
+	  -e USER=$(USER) \
+	  -u $(USER) \
+	  -w $(ROOT) \
+	  $(CONTAINER-NAME) \
+	  bash -c '\
+	    sudo service dbus start; \
+	    export XDG_RUNTIME_DIR=/run/user/$$(id -u); \
+	    sudo mkdir $$XDG_RUNTIME_DIR; \
+	    sudo chmod 700 $$XDG_RUNTIME_DIR; \
+	    sudo chown $$(id -un):$$(id -gn) $$XDG_RUNTIME_DIR; \
+	    export DBUS_SESSION_BUS_ADDRESS=unix:path=$$XDG_RUNTIME_DIR/bus; \
+	    dbus-daemon --session \
+	    --address=$$DBUS_SESSION_BUS_ADDRESS \
+	    --nofork --nopidfile --syslog-only & \
+	    cursor --no-sandbox .'
 
-stop:
+kill:
 	-docker kill $(CONTAINER-NAME)
 	xhost -local:docker
-	$(RM) $(SECURSOR-FILE) $(CONTAINER-FILE)
+	$(RM) $(CONTAINER-FILE)
 
 build: $(BUILD-FILE)
 
@@ -64,7 +80,7 @@ shell: $(CONTAINER-FILE)
 clean:
 	$(RM) $(BUILD-FILE)
 
-realclean: stop-container
+realclean: kill
 
 distclean: realclean
 	$(RM) -r $(GIT-EXT)
@@ -102,34 +118,10 @@ $(CONTAINER-FILE): $(CURSOR-BINARY) $(BUILD-FILE)
 	  $(DOCKER-IMAGE) \
 	  sleep infinity > $@
 
-$(SECURSOR-FILE): $(CONTAINER-FILE)
-	$(RM) $@
-	xhost +local:docker
-	docker exec -d -it \
-	  -e USER=$(USER) \
-	  -u $(USER) \
-	  -w $(ROOT) \
-	  $(CONTAINER-NAME) \
-	  bash -c '\
-	    sudo service dbus start; \
-	    export XDG_RUNTIME_DIR=/run/user/$$(id -u); \
-	    sudo mkdir $$XDG_RUNTIME_DIR; \
-	    sudo chmod 700 $$XDG_RUNTIME_DIR; \
-	    sudo chown $$(id -un):$$(id -gn) $$XDG_RUNTIME_DIR; \
-	    export DBUS_SESSION_BUS_ADDRESS=unix:path=$$XDG_RUNTIME_DIR/bus; \
-	    dbus-daemon --session \
-	    --address=$$DBUS_SESSION_BUS_ADDRESS \
-	    --nofork --nopidfile --syslog-only & \
-	    cursor --no-sandbox .'
-	touch $@
-
 $(CURSOR-BINARY): $(CURSOR-URL-FILE)
 	curl -s $$(< $<) > $@
 	chmod +x $@
 	touch $@
-
-define get-cursor
-endef
 
 $(CURSOR-URL-FILE): $(VERSIONS-FILE) $(YS)
 	ys '(_.versions.drop-while(\(_.version != "$(CURSOR-VERSION)")).first() ||| _.versions.first()).platforms.linux-x64 ||| die("Cannot find Cursor version $(CURSOR-VERSION)")' < $< > $@
