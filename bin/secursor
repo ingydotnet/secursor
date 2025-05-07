@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+[[ $XDEBUG ]] && set -x
+
 set -euo pipefail
 
 help() (
@@ -8,8 +10,11 @@ Usage: secursor [options] [repo]
 
 Options:
       --start         Start the editor (default)
+  -r, --restart       Stop and start the editor
+
   -K, --kill          Kill the editor container
-  -R, --restart       Rebuild the image and restart
+  -R, --rebuild       Rebuild the image and restart
+
   -h, --help          Show this help message
   -v, --version       Show the version
 
@@ -46,22 +51,33 @@ action() (
       help
       exit
       ;;
+
     -v|--version)
       make --no-print-directory -f "$root/Makefile" version
       exit
       ;;
+
     --start)
       make -e -f "$root/Makefile" start
       ;;
+
+    -r|--restart)
+      setup "$@"
+      make -e -f "$root/Makefile" kill
+      secursor "$@"
+      ;;
+
     -K|--kill)
       make -e -f "$root/Makefile" kill
       ;;
-    -R|--restart)
+
+    -R|--rebuild)
       setup "$@"
       make -e -f "$root/Makefile" kill
       rm -fr "$gitdir/.ext"
       secursor "$@"
       ;;
+
     *)
       die "Unknown action flag: $1";;
   esac
@@ -71,7 +87,18 @@ init() {
   SECURSOR_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")/.." && pwd -P)
   export SECURSOR_ROOT
   root=$SECURSOR_ROOT
+
+  assert-home-config
 }
+
+assert-home-config() (
+  HS=$HOME/.secursor
+  [[ -d $HS ]] || mkdir -p "$HS"
+  [[ -f $HS/config.yaml ]] ||
+    cp "$root/share/config.yaml" "$HS/config.yaml"
+  [[ -f $HS/bashrc ]] ||
+    cp "$root/share/bashrc" "$HS/bashrc"
+)
 
 setup() {
   { [[ -d $root ]] &&

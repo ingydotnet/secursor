@@ -17,11 +17,15 @@ $ secursor -h
 Usage: secursor [options] [repo]
 
 Options:
-      --start     Start the editor (default)
-  -K, --kill      Kill the container
-  -R, --restart   Rebuild the image and restart
-  -h, --help      Show this help message
-  -v, --version   Show the version
+      --start         Start the editor (default)
+  -r, --restart       Stop and start the editor
+
+  -K, --kill          Kill the editor container
+  -R, --rebuild       Rebuild the image and restart
+
+  -h, --help          Show this help message
+  -v, --version       Show the version
+
 $ cd my-project-git-repo
 $ secursor   # Starts the Cursor VSCode application
 ```

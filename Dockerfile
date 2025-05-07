@@ -10,6 +10,7 @@ RUN apt-get update \
  && apt-get install -y apt-utils \
  && DEBIAN_FRONTEND=noninteractive \
     apt-get install -y \
+        bash-completion \
         build-essential \
         curl \
         fuse3 \
@@ -35,6 +36,7 @@ RUN apt-get update \
         libxss1 \
         libxtst6 \
         locales \
+        man-db \
         sudo \
         wget \
         xz-utils \
@@ -57,17 +59,7 @@ RUN set -x \
  && echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers \
  && groupadd postdrop \
  && useradd postfix \
- && true
-
-RUN set -x \
- && chown $UID.$GID /home/$USER \
- && chown $UID.$GID /home/$USER/.bashrc \
- && rm -f /root/.bashrc \
- && ln -fs /home/$USER/.bashrc /root/.bashrc \
- && cd /home/$USER \
- && for d in $(ls -A1 /root/ | grep -Ev '(bashrc)'); do \
-        ln -fs /root/$d; \
-    done \
+ && chown -R $UID.$GID /home/$USER \
  && true
 
 RUN DEBIAN_FRONTEND=noninteractive \
@@ -77,3 +69,9 @@ USER $USER
 
 ENV DISPLAY=:0
 ENV QT_X11_NO_MITSHM=1
+
+RUN set -x \
+ && echo 'source ~/.bashrc' > ~/.profile \
+ && echo '[[ -f ~/.secursor/bashrc ]] &&' > ~/.bashrc \
+ && echo '  source ~/.secursor/bashrc' >> ~/.bashrc \
+ && true
