@@ -106,7 +106,7 @@ $(CONTAINER-FILE): $(CURSOR-BINARY) $(BUILD-FILE)
 	  --hostname=SECursor \
 	  -v /tmp/.X11-unix:/tmp/.X11-unix \
 	  -v $(TMP)/.bash_history:$(HOME)/.bash_history \
-	  -v $(HOME)/.config:$(HOME)/.config \
+	  -v $(HOME)/.config/Cursor:$(HOME)/.config/Cursor \
 	  -v $(HOME)/.cursor:$(HOME)/.cursor \
 	  -v $(HOME)/.secursor:$(HOME)/.secursor \
 	  -v $(ROOT):$(ROOT) \
