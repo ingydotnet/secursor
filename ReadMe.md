@@ -13,8 +13,8 @@ It has only been tested from an Ubuntu Linux host.
 ## Synopsis
 
 ```bash
-$ SECursor -h
-Usage: SECursor [options] [repo]
+$ secursor -h
+Usage: secursor [options] [repo]
 
 Options:
       --start     Start the editor (default)
@@ -23,7 +23,7 @@ Options:
   -h, --help      Show this help message
   -v, --version   Show the version
 $ cd my-project-git-repo
-$ SECursor   # Starts the Cursor VSCode application
+$ secursor   # Starts the Cursor VSCode application
 ```
 
 
