@@ -109,6 +109,7 @@ $(CONTAINER-FILE): $(CURSOR-BINARY) $(BUILD-FILE)
 	  -v $(HOME)/.config/Cursor:$(HOME)/.config/Cursor \
 	  -v $(HOME)/.cursor:$(HOME)/.cursor \
 	  -v $(HOME)/.secursor:$(HOME)/.secursor \
+	  $(shell find $(HOME)/.secursor/home -mindepth 1 -maxdepth 1 -exec echo "-v {}:$(HOME)/$(shell basename {})" \;) \
 	  -v $(ROOT):$(ROOT) \
 	  -v $<:/usr/bin/cursor \
 	  -e DISPLAY=$$DISPLAY \
