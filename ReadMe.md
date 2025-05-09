@@ -111,6 +111,8 @@ git clone https://github.com/ingydotnet/secursor
 export PATH=/path/to/secursor/bin:$PATH
 ```
 
+See "First Run" below.
+
 
 ## Usage
 
@@ -130,6 +132,22 @@ The directory must be within a Git repo working directory tree.
 
 This app will write any installation and runtime files under the `.git/.ext/`
 directory of your repo directory.
+
+
+## First Run
+
+Currently the first time you run SECursor, Cursor will need to do its own
+setup.
+
+To do this, run secursor in any Git repo clone directory, then close the
+started Cursor app.
+
+Next run `.git/.ext/cache/Cursor-latest.AppImage` which will start Cursor
+outside of a SECursor isolation environment.
+
+Follow the setup instructions and then quit the Cursor app.
+
+Now you are set to use `secursor` from properly from any git project.
 
 
 ## Configuration
@@ -155,6 +173,15 @@ The `$HOME` and local configs will be merged with the local one taking
 precedence.
 By default this uses the latest released version of Cursor.
 
+You can also add your own Bash config in `~/.secursor/bashrc`, and also
+in a project's `./.secursor/bashrc`.
+
+See <https://github.com/ingydotnet/secursor-ingydotnet-config> for an example.
+Keeping this `$HOME` config as a public or private repo is probably a good
+idea.
+Since you should never have private info exposed inside SECursor, you can
+likely make the repo public and share it.
+
 
 ## Using SECursor with [tmate](https://tmate.io/)
 
@@ -166,6 +193,9 @@ If you don't trust them fully, you risk them do bad stuff to your host machine.
 
 With SECursor that risk is much more mitigated, as they only have access
 to your sandboxed content.
+
+If you don't trust the <https://tmate.io/> server itself, you can run your own
+on a shared network with <https://hub.docker.com/r/tmate/tmate-ssh-server>.
 
 
 ## Authors
