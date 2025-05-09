@@ -6,8 +6,13 @@ SECURSOR_ROOT ?= $(shell pwd -P)
 
 include $(SECURSOR_ROOT)/.make/init.mk
 
+YS := $(PREFIX)/bin/ys-$(YS-VERSION)
+ifeq (,$(wildcard $(YS)))
+  $(shell export PREFIX='$(PREFIX)' BIN=1 VERSION='$(YS-VERSION)' && $(SECURSOR_ROOT)/sbin/install-ys &> out)
+endif
+
 # Generate a make include file from the SECursor config files
-CONFIG := $(shell TMPDIR=$(TMPDIR) $(SECURSOR_ROOT)/sbin/secursor-config)
+CONFIG := $(shell TMPDIR=$(TMPDIR) $(YS) $(SECURSOR_ROOT)/sbin/secursor-config)
 ifeq (,$(CONFIG))
 $(error Error in SECursor config files)
 endif
@@ -22,8 +27,6 @@ C := $(CACHE)
 T := $(TARGET)
 N := $(NAME)
 V := $(SECURSOR-VERSION)
-
-YS := $(PREFIX)/bin/ys-$(YS-VERSION)
 
 DOCKER-IMAGE := secursor-$N:$V
 VERSIONS-FILE := $C/cursor-version-history.json
@@ -123,6 +126,7 @@ $(CONTAINER-FILE): $(CURSOR-BINARY) $(BUILD-FILE)
 	  -v /tmp/.X11-unix:/tmp/.X11-unix \
 	  -v $(TMP)/.bash_history:$(HOME)/.bash_history \
 	  -v $(HOME)/.config/Cursor:$(HOME)/.config/Cursor \
+	  -v $(HOME)/.config/exercism:$(HOME)/.config/exercism \
 	  -v $(HOME)/.cursor:$(HOME)/.cursor \
 	  -v $(HOME)/.secursor:$(HOME)/.secursor \
 	  -v $(ROOT):$(ROOT) \
@@ -144,7 +148,7 @@ $(CURSOR-URL-FILE): $(VERSIONS-FILE) $(YS)
 	#
 	# Getting the URL for Cursor version '$(CURSOR-VERSION)'
 	#
-	ys '(_.versions.drop-while(\(_.version != "$(CURSOR-VERSION)")).first() ||| _.versions.first()).platforms.linux-x64 ||| die("Cannot find Cursor version $(CURSOR-VERSION)")' < $< > $@
+	$(YS) '(_.versions.drop-while(\(_.version != "$(CURSOR-VERSION)")).first() ||| _.versions.first()).platforms.linux-x64 ||| die("Cannot find Cursor version $(CURSOR-VERSION)")' < $< > $@
 
 $(VERSIONS-FILE):
 	#
