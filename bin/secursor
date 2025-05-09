@@ -112,7 +112,7 @@ setup() {
     die 'No repo directory provided'
   [[ -d $repo ]] ||
     die "Repo directory does not exist: $repo"
-  gitdir=$(cd "$repo" && git rev-parse --git-common-dir 2>/dev/null)
+  gitdir=$(cd "$repo" && git rev-parse --git-common-dir 2>/dev/null || true)
   [[ $gitdir ]] ||
     die "Repo is not a git repository: $repo"
   [[ -d $gitdir ]] ||
