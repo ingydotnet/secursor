@@ -6,6 +6,9 @@ SECURSOR_ROOT ?= $(shell pwd -P)
 
 include $(SECURSOR_ROOT)/.make/init.mk
 
+# Detect if system is using Wayland
+IS_WAYLAND := $(shell echo $$XDG_SESSION_TYPE | grep -q wayland && echo 1 || echo 0)
+
 YS := $(PREFIX)/bin/ys-$(YS-VERSION)
 ifeq (,$(wildcard $(YS)))
   $(shell export PREFIX='$(PREFIX)' BIN=1 VERSION='$(YS-VERSION)' && $(SECURSOR_ROOT)/sbin/install-ys &> out)
@@ -124,6 +127,7 @@ $(CONTAINER-FILE): $(CURSOR-BINARY) $(BUILD-FILE)
 	  --security-opt apparmor:$(APPARMOR_PROFILE) \
 	  --hostname=SECursor \
 	  -v /tmp/.X11-unix:/tmp/.X11-unix \
+	  $(if $(filter 1,$(IS_WAYLAND)),-v /run/user/$(USER-UID)/wayland-0:/run/user/$(USER-UID)/wayland-0,) \
 	  -v $(TMP)/.bash_history:$(HOME)/.bash_history \
 	  -v $(HOME)/.config/Cursor:$(HOME)/.config/Cursor \
 	  -v $(HOME)/.config/exercism:$(HOME)/.config/exercism \
@@ -132,6 +136,7 @@ $(CONTAINER-FILE): $(CURSOR-BINARY) $(BUILD-FILE)
 	  -v $(ROOT):$(ROOT) \
 	  -v $<:/usr/bin/cursor \
 	  -e DISPLAY=$$DISPLAY \
+	  $(if $(filter 1,$(IS_WAYLAND)),-e WAYLAND_DISPLAY=wayland-0 -e XDG_RUNTIME_DIR=/run/user/$(USER-UID),) \
 	  --name $(CONTAINER-NAME) \
 	  $(DOCKER-IMAGE) \
 	  sleep infinity > $@
