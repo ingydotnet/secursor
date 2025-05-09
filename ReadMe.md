@@ -13,12 +13,11 @@ It has only been tested from an Ubuntu Linux host.
 ## Synopsis
 
 ```bash
-$ secursor -h
 Usage: secursor [options] [repo]
 
 Options:
       --start         Start the editor (default)
-  -r, --restart       Stop and start the editor
+  -r, --restart       Run --kill and --start
 
   -K, --kill          Kill the editor container
   -R, --rebuild       Rebuild the image and restart

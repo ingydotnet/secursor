@@ -20,7 +20,7 @@ GIT-ROOT := $(shell dirname $(GIT-DIR))
 PREFIX := $(GIT-EXT)
 CACHE  := $(GIT-EXT)/cache
 TMPDIR := $(GIT-EXT)/tmp
-TARGET := $(GIT-EXT)/target
+TARGET := $(GIT-EXT)/make
 ifeq (,$(wildcard $(CACHE)))
 $(shell mkdir -p $(CACHE))
 endif

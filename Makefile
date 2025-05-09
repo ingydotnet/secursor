@@ -89,6 +89,8 @@ clean:
 realclean: kill
 
 distclean: realclean
+
+sysclean: distclean
 	$(RM) -r $(GIT-EXT)
 
 $(BUILD-FILE):
