@@ -1,26 +1,28 @@
+SECURSOR-VERSION := 0.1.1
+CURSOR-VERSION := latest
+YS-VERSION := 0.1.96
+
 SECURSOR_ROOT ?= $(shell pwd -P)
 
 include $(SECURSOR_ROOT)/.make/init.mk
 
-SECURSOR-VERSION := 0.1.1
-V := $(SECURSOR-VERSION)
-
-CURSOR-VERSION := latest
-
+# Generate a make include file from the SECursor config files
 CONFIG := $(shell TMPDIR=$(TMPDIR) $(SECURSOR_ROOT)/sbin/secursor-config)
 ifeq (,$(CONFIG))
 $(error Error in SECursor config files)
 endif
+# This can override the CURSOR-VERSION value:
 include $(CONFIG)
 
 ROOT := $(GIT-ROOT)
-C := $(CACHE)
-T := $(TARGET)
 TMP := $(TMPDIR)
 NAME := $(shell basename $(ROOT))
-N := $(NAME)
 
-YS-VERSION := 0.1.96
+C := $(CACHE)
+T := $(TARGET)
+N := $(NAME)
+V := $(SECURSOR-VERSION)
+
 YS := $(PREFIX)/bin/ys-$(YS-VERSION)
 
 DOCKER-IMAGE := secursor-$N:$V
@@ -44,6 +46,9 @@ version:
 	@echo SECursor v$(SECURSOR-VERSION)
 
 start: $(CONTAINER-FILE)
+	#
+	# Starting the Cursor application for $(NAME)
+	#
 	xhost +local:docker
 	docker exec -d -it \
 	  -e USER=$(USER) \
@@ -63,6 +68,9 @@ start: $(CONTAINER-FILE)
 	    cursor --no-sandbox .'
 
 kill:
+	#
+	# Killing the SECursor Docker container for $(NAME)
+	#
 	-docker kill $(CONTAINER-NAME)
 	xhost -local:docker
 	$(RM) $(CONTAINER-FILE)
@@ -84,6 +92,9 @@ distclean: realclean
 	$(RM) -r $(GIT-EXT)
 
 $(BUILD-FILE):
+	#
+	# Building the SECursor Docker image for $(NAME)
+	#
 	-docker kill $(CONTAINER-NAME)
 	$(RM) $@
 	docker build \
@@ -97,6 +108,9 @@ $(BUILD-FILE):
 	touch $@
 
 $(CONTAINER-FILE): $(CURSOR-BINARY) $(BUILD-FILE)
+	#
+	# Starting SECursor Docker container for $(NAME)
+	#
 	$(RM) $@
 	touch $(TMP)/.bash_history
 	docker run -d --rm \
@@ -117,15 +131,27 @@ $(CONTAINER-FILE): $(CURSOR-BINARY) $(BUILD-FILE)
 	  sleep infinity > $@
 
 $(CURSOR-BINARY): $(CURSOR-URL-FILE)
+	#
+	# Downloading Cursor version '$(CURSOR-VERSION)' binary
+	#
 	curl -s $$(< $<) > $@
 	chmod +x $@
 	touch $@
 
 $(CURSOR-URL-FILE): $(VERSIONS-FILE) $(YS)
+	#
+	# Getting the URL for Cursor version '$(CURSOR-VERSION)'
+	#
 	ys '(_.versions.drop-while(\(_.version != "$(CURSOR-VERSION)")).first() ||| _.versions.first()).platforms.linux-x64 ||| die("Cannot find Cursor version $(CURSOR-VERSION)")' < $< > $@
 
 $(VERSIONS-FILE):
+	#
+	# Downloading the Cursor version history file
+	#
 	curl -sL $(VERSIONS-FILE-URL) > $@
 
 $(YS):
+	#
+	# Installing ys version '$(YS-VERSION)' locally in $(NAME)/.git/.ext/bin
+	#
 	BIN=1 VERSION=$(YS-VERSION) $(SECURSOR_ROOT)/sbin/install-ys
