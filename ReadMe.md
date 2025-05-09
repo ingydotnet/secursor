@@ -107,8 +107,10 @@ maintaining control over what the application can access and do.
 
 ```bash
 git clone https://github.com/ingydotnet/secursor
+cd secursor
 # Add this line to your shell profile:
-export PATH=/path/to/secursor/bin:$PATH
+echo "export PATH=$PWD/bin:"'$PATH' >> ~/.bashrc
+source ~/.bashrc
 ```
 
 See "First Run" below.
