@@ -16,9 +16,9 @@ endif
 # This can override the CURSOR-APP-URL value:
 include $(CONFIG)
 
-ROOT := $(GIT-ROOT)
+REPO := $(GIT-ROOT)
 TMP := $(TMPDIR)
-NAME := $(shell basename $(ROOT))
+NAME := $(shell basename $(REPO))
 
 C := $(CACHE)
 T := $(TARGET)
@@ -26,6 +26,7 @@ N := $(NAME)
 V := $(SECURSOR-VERSION)
 
 DOCKER-IMAGE := ingy/secursor-$N:$V
+CURSOR-APP := $C/Cursor-$(CURSOR-VERSION).AppImage
 BUILD-FILE := $T/secursor-build-$N
 CONTAINER-NAME := secursor-$N
 CONTAINER-FILE := $T/$(CONTAINER-NAME)
@@ -48,22 +49,9 @@ start: $(CONTAINER-FILE)
 	docker exec -d -it \
 	  -e USER=$(USER) \
 	  -u $(USER) \
-	  -w $(ROOT) \
+	  -w $(REPO) \
 	  $(CONTAINER-NAME) \
-	  bash -c '\
-	    sudo service dbus start; \
-	    export XDG_RUNTIME_DIR=/run/user/$$(id -u); \
-	    sudo mkdir $$XDG_RUNTIME_DIR; \
-	    sudo chmod 700 $$XDG_RUNTIME_DIR; \
-	    sudo chown $$(id -un):$$(id -gn) $$XDG_RUNTIME_DIR; \
-	    export DBUS_SESSION_BUS_ADDRESS=unix:path=$$XDG_RUNTIME_DIR/bus; \
-	    dbus-daemon \
-	      --session \
-	      --address=$$DBUS_SESSION_BUS_ADDRESS \
-	      --nofork \
-	      --nopidfile \
-	      --syslog-only & \
-	    cursor --no-sandbox .'
+	  cursor --no-sandbox .
 
 kill:
 	#
@@ -80,7 +68,7 @@ publish:
 
 shell: $(CONTAINER-FILE)
 	docker exec -it \
-	  -w $(ROOT) \
+	  -w $(REPO) \
 	  $(CONTAINER-NAME) \
 	  bash
 
@@ -127,7 +115,7 @@ $(CONTAINER-FILE): $(BUILD-FILE)
 	  -v $(HOME)/.config/Cursor:$(HOME)/.config/Cursor \
 	  -v $(HOME)/.cursor:$(HOME)/.cursor \
 	  -v $(HOME)/.secursor:$(HOME)/.secursor \
-	  -v $(ROOT):$(ROOT) \
+	  -v $(REPO):$(REPO) \
 	  -e DISPLAY=$$DISPLAY \
 	  --name $(CONTAINER-NAME) \
 	  $(DOCKER-IMAGE) \

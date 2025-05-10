@@ -70,6 +70,18 @@ RUN curl -s $URL > /usr/local/bin/cursor \
  && chmod +x /usr/local/bin/cursor \
  && true
 
+RUN bash -c '\
+      XDG_RUNTIME_DIR=/run/user/$UID; \
+      sudo mkdir $XDG_RUNTIME_DIR; \
+      sudo chown $UID:$GID $XDG_RUNTIME_DIR; \
+      export DBUS_SESSION_BUS_ADDRESS=unix:path=$XDG_RUNTIME_DIR/bus; \
+      dbus-daemon \
+        --session \
+        --address=$DBUS_SESSION_BUS_ADDRESS \
+        --nofork \
+        --nopidfile \
+        --syslog-only &'
+
 USER $USER
 
 ENV DISPLAY=:0
