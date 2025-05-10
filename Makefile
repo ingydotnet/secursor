@@ -1,22 +1,19 @@
+include .make/init.mk
+
 SECURSOR-VERSION := 0.1.1
-CURSOR-VERSION := latest
-YS-VERSION := 0.1.96
+CURSOR-APP-URL := \
+  https://downloads.cursor.com/production/bbfa51c1211255cbbde8b558e014a593f44051f4/linux/x64/Cursor-0.50.0-x86_64.AppImage
 
-SECURSOR_ROOT ?= $(shell pwd -P)
+# See this for latest:
 
-include $(SECURSOR_ROOT)/.make/init.mk
+SECURSOR_ROOT ?= $(MAKE-ROOT)
 
-YS := $(PREFIX)/bin/ys-$(YS-VERSION)
-ifeq (,$(wildcard $(YS)))
-  $(shell export PREFIX='$(PREFIX)' BIN=1 VERSION='$(YS-VERSION)' && $(SECURSOR_ROOT)/sbin/install-ys &> out)
-endif
-
-# Generate a make include file from the SECursor config files
-CONFIG := $(shell TMPDIR=$(TMPDIR) $(YS) $(SECURSOR_ROOT)/sbin/secursor-config)
+# Generate a make include file from the SECursor config files:
+CONFIG := $(shell TMPDIR=$(TMPDIR) $(SECURSOR_ROOT)/sbin/secursor-config)
 ifeq (,$(CONFIG))
-$(error Error in SECursor config files)
+  $(error Error in SECursor config files)
 endif
-# This can override the CURSOR-VERSION value:
+# This can override the CURSOR-APP-URL value:
 include $(CONFIG)
 
 ROOT := $(GIT-ROOT)
@@ -28,20 +25,15 @@ T := $(TARGET)
 N := $(NAME)
 V := $(SECURSOR-VERSION)
 
-DOCKER-IMAGE := secursor-$N:$V
-VERSIONS-FILE := $C/cursor-version-history.json
-VERSIONS-FILE-URL := \
-  https://github.com/oslook/cursor-ai-downloads/raw/main/version-history.json
-CURSOR-URL-FILE := $C/cursor-url
-CURSOR-BINARY := $C/Cursor-$(CURSOR-VERSION).AppImage
+DOCKER-IMAGE := ingy/secursor-$N:$V
 BUILD-FILE := $T/secursor-build-$N
 CONTAINER-NAME := secursor-$N
 CONTAINER-FILE := $T/$(CONTAINER-NAME)
-LOG-FILE := $(TMP)/secursor.log
 
 APPARMOR_PROFILE ?= unconfined
 
-ifneq (0,$(shell docker ps --format '{{.Names}}' | grep -q $(CONTAINER-NAME); echo $$?))
+# If container not running, remove the file that says that it is running:
+ifeq (,$(shell docker ps --format '{{.Names}}' | grep -q $(CONTAINER-NAME)))
 _ := $(shell rm -f $(CONTAINER-FILE))
 endif
 
@@ -65,9 +57,12 @@ start: $(CONTAINER-FILE)
 	    sudo chmod 700 $$XDG_RUNTIME_DIR; \
 	    sudo chown $$(id -un):$$(id -gn) $$XDG_RUNTIME_DIR; \
 	    export DBUS_SESSION_BUS_ADDRESS=unix:path=$$XDG_RUNTIME_DIR/bus; \
-	    dbus-daemon --session \
-	    --address=$$DBUS_SESSION_BUS_ADDRESS \
-	    --nofork --nopidfile --syslog-only & \
+	    dbus-daemon \
+	      --session \
+	      --address=$$DBUS_SESSION_BUS_ADDRESS \
+	      --nofork \
+	      --nopidfile \
+	      --syslog-only & \
 	    cursor --no-sandbox .'
 
 kill:
@@ -79,6 +74,9 @@ kill:
 	$(RM) $(CONTAINER-FILE)
 
 build: $(BUILD-FILE)
+
+publish:
+	docker push $(DOCKER-IMAGE)
 
 shell: $(CONTAINER-FILE)
 	docker exec -it \
@@ -107,12 +105,13 @@ $(BUILD-FILE):
 	  --build-arg USER=$$USER \
 	  --build-arg UID=$(USER-UID) \
 	  --build-arg GID=$(USER-GID) \
-	  --build-arg APT='$(APT-GET)' \
+	  --build-arg APT='$(APT-INSTALL)' \
+	  --build-arg URL=$(CURSOR-APP-URL) \
 	  --tag $(DOCKER-IMAGE) \
 	  .
 	touch $@
 
-$(CONTAINER-FILE): $(CURSOR-BINARY) $(BUILD-FILE)
+$(CONTAINER-FILE): $(BUILD-FILE)
 	#
 	# Starting SECursor Docker container for $(NAME)
 	#
@@ -126,38 +125,10 @@ $(CONTAINER-FILE): $(CURSOR-BINARY) $(BUILD-FILE)
 	  -v /tmp/.X11-unix:/tmp/.X11-unix \
 	  -v $(TMP)/.bash_history:$(HOME)/.bash_history \
 	  -v $(HOME)/.config/Cursor:$(HOME)/.config/Cursor \
-	  -v $(HOME)/.config/exercism:$(HOME)/.config/exercism \
 	  -v $(HOME)/.cursor:$(HOME)/.cursor \
 	  -v $(HOME)/.secursor:$(HOME)/.secursor \
 	  -v $(ROOT):$(ROOT) \
-	  -v $<:/usr/bin/cursor \
 	  -e DISPLAY=$$DISPLAY \
 	  --name $(CONTAINER-NAME) \
 	  $(DOCKER-IMAGE) \
 	  sleep infinity > $@
-
-$(CURSOR-BINARY): $(CURSOR-URL-FILE)
-	#
-	# Downloading Cursor version '$(CURSOR-VERSION)' binary
-	#
-	curl -s $$(< $<) > $@
-	chmod +x $@
-	touch $@
-
-$(CURSOR-URL-FILE): $(VERSIONS-FILE) $(YS)
-	#
-	# Getting the URL for Cursor version '$(CURSOR-VERSION)'
-	#
-	$(YS) '(_.versions.drop-while(\(_.version != "$(CURSOR-VERSION)")).first() ||| _.versions.first()).platforms.linux-x64 ||| die("Cannot find Cursor version $(CURSOR-VERSION)")' < $< > $@
-
-$(VERSIONS-FILE):
-	#
-	# Downloading the Cursor version history file
-	#
-	curl -sL $(VERSIONS-FILE-URL) > $@
-
-$(YS):
-	#
-	# Installing ys version '$(YS-VERSION)' locally in $(NAME)/.git/.ext/bin
-	#
-	BIN=1 VERSION=$(YS-VERSION) $(SECURSOR_ROOT)/sbin/install-ys

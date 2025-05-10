@@ -94,8 +94,8 @@ init() {
 assert-home-config() (
   HS=$HOME/.secursor
   [[ -d $HS ]] || mkdir -p "$HS"
-  [[ -f $HS/config.yaml ]] ||
-    cp "$root/share/config.yaml" "$HS/config.yaml"
+  [[ -f $HS/config ]] ||
+    cp "$root/share/config" "$HS/config"
   [[ -f $HS/bashrc ]] ||
     cp "$root/share/bashrc" "$HS/bashrc"
 )

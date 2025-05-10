@@ -1,0 +1,17 @@
+# SECursor ~/.secursor/config global config file.
+#
+# This file is used to configure the SECursor environment for all sessions.
+# It is merged with a project's .secursor/config file if it exists.
+
+[cursor]
+  sandbox = docker
+
+# This string value is split into words and then combined and deduplicated with
+# any values in the project's .secursor/config file.
+# The values are installed using apt-get during the container build.
+[docker]
+  install = "\
+    tig \
+    tmate \
+    tree \
+    "

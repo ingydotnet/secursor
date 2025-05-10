@@ -1,17 +1,21 @@
 # Using bash to run commands gives us a stable foundation to build upon.
 SHELL := bash
 
+MAKE-ROOT := $(shell pwd -P)
+
 # Note:
 # * All Makefile variables should be 2 or more words separated by '-'.
 #   Shell vars can't contain '-' so it provides a clear separation.
 
 # This system is intended only to be used in a Git repository.
-GIT-DIR := $(shell git rev-parse --git-common-dir 2>/dev/null)
-GIT-DIR := $(shell [[ '$(GIT-DIR)' && '$(GIT-DIR)' == *.git && -d '$(GIT-DIR)' ]] && echo $(GIT-DIR))
+GIT-DIR := $(shell \
+  dir=$$(git rev-parse --git-common-dir 2>/dev/null); \
+  [[ $$dir && $$dir == *.git && -d $$dir ]] && \
+  (cd "$$dir" && pwd -P))
 ifeq (,$(GIT-DIR))
 $(error Not inside a git repo)
 endif
-GIT-DIR := $(shell cd $(GIT-DIR) && pwd -P)
+
 GIT-EXT := $(GIT-DIR)/.ext
 GIT-ROOT := $(shell dirname $(GIT-DIR))
 

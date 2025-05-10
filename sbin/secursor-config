@@ -1,32 +1,46 @@
-#!/usr/bin/env ys-0
+#!/usr/bin/env bash
 
-home-config =: "$(ENV.HOME)/.secursor/config.yaml"
-local-config =: "$CWD/.secursor/config.yaml"
+set -euo pipefail
 
-home =:
-  if home-config:fs-f:
-    load: home-config
-    else:: {}
+main() (
+  cursor_url=$(local-config cursor.linux_x86)
+  cursor_url=${cursor_url:-$(home-config cursor.linux-x86)}
 
-local =:
-  if local-config:fs-f:
-    load: local-config
-    else:: {}
+  apt_install=$(
+    (
+      home-config  docker.install || true;
+      local-config docker.install || true;
+    ) | sort | uniq | xargs
+  )
 
-config =::
-  cursor::
-    merge:
-      home.cursor local.cursor
-  apt-get::
-    joins: +[
-      home.apt-get
-      local.apt-get
-      ]
+  config_mk=$(mktemp $TMPDIR/XXXXXXXX)
 
-config-mk =: sh-out("mktemp $(ENV.TMPDIR)/XXXXXX")
+  cat <<... > "$config_mk"
+CURSOR-APP-URL ?= $cursor_url
+APT-INSTALL := $apt_install
+...
 
-write config-mk: |
-  CURSOR-VERSION := $(config.cursor.version || 'latest')
-  APT-GET := $(config.apt-get ||| '')
+  echo "$config_mk"
+)
 
-say: config-mk
+home_config=$HOME/.secursor/config
+local_config=$PWD/.secursor/config
+
+home-config() (
+  if [[ -f $home_config ]]; then
+    git config -f "$home_config" "$1" || true
+  fi
+)
+
+local-config() (
+  if [[ -f $local_config ]]; then
+    git config -f "$local_config" "$1" || true
+  fi
+)
+
+die() {
+  printf '%s\n' "$@" >&2
+  exit 1
+}
+
+main "$@"

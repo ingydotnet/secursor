@@ -32,10 +32,10 @@ $ secursor   # Starts the Cursor VSCode application
 
 ## Description
 
-This project provides a complete Docker-based sandbox environment for running
-the Cursor AI editor.
-It sets up a secure containerized environment with all necessary dependencies
-and configuration to run Cursor smoothly.
+This project provides a Docker-based sandbox environment for running the Cursor
+AI editor.
+It sets up a containerized environment with all necessary dependencies and
+configuration to run Cursor smoothly.
 
 
 ### Rationale
@@ -154,21 +154,23 @@ Now you are set to use `secursor` from properly from any git project.
 
 ## Configuration
 
-You can add a `~/.secursor/config.yaml` file like this to your host or a
-`./.secursor/config.yaml` project repo.
+You can add a `~/.secursor/config` file like this to your host or a
+`./.secursor/config` project repo.
 
 Here's an example:
 
-```yaml
-cursor:
-  version: 0.48.0
+```
+[cursor]
+  sandbox = docker
 
-apt-get:
-  jq
-  silversearcher-ag
-  tig
-  tmate
-  tree
+[docker]
+  install = "\
+    jq \
+    silversearcher-ag \
+    tig \
+    tmate \
+    tree \
+    "
 ```
 
 The `$HOME` and local configs will be merged with the local one taking

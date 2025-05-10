@@ -4,6 +4,7 @@ ARG USER
 ARG UID
 ARG GID
 ARG APT
+ARG URL
 
 # Install necessary dependencies
 RUN apt-get update \
@@ -64,6 +65,10 @@ RUN set -x \
 
 RUN DEBIAN_FRONTEND=noninteractive \
     apt-get install -y $APT
+
+RUN curl -s $URL > /usr/local/bin/cursor \
+ && chmod +x /usr/local/bin/cursor \
+ && true
 
 USER $USER
 
