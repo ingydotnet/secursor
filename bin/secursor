@@ -36,6 +36,7 @@ main() (
   cd "$repo" ||
     die "Failed to cd to repo: $repo"
 
+  export SECURSOR_ROOT
   export SECURSOR_DOCKERFILE=$root/Dockerfile
   export SECURSOR_ARGS="$*"
 

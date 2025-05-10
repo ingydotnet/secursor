@@ -1,4 +1,5 @@
-include .make/init.mk
+SECURSOR_ROOT ?= $(shell pwd -P)
+include $(SECURSOR_ROOT)/.make/init.mk
 
 SECURSOR-VERSION := 0.1.1
 CURSOR-APP-URL := \
@@ -9,7 +10,8 @@ CURSOR-APP-URL := \
 SECURSOR_ROOT ?= $(MAKE-ROOT)
 
 # Generate a make include file from the SECursor config files:
-CONFIG := $(shell TMPDIR=$(TMPDIR) $(SECURSOR_ROOT)/sbin/secursor-config)
+CONFIG := \
+  $(shell TMPDIR=$(TMPDIR) $(SECURSOR_ROOT)/sbin/secursor-config)
 ifeq (,$(CONFIG))
   $(error Error in SECursor config files)
 endif
