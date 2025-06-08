@@ -1,17 +1,16 @@
-SECURSOR_ROOT ?= $(shell pwd -P)
-include $(SECURSOR_ROOT)/.make/init.mk
+M := .git/.makes
+$(shell [ -d $M ] || (git clone -q https://github.com/makeplus/makes $M))
+include $M/init.mk
+include $M/local.mk
 
 SECURSOR-VERSION := 0.1.1
+SECURSOR_ROOT ?= $(MAKE-ROOT)
 CURSOR-APP-URL := \
   https://downloads.cursor.com/production/bbfa51c1211255cbbde8b558e014a593f44051f4/linux/x64/Cursor-0.50.0-x86_64.AppImage
 
-# See this for latest:
-
-SECURSOR_ROOT ?= $(MAKE-ROOT)
-
-# Generate a make include file from the SECursor config files:
+# Generate a make-include-file from the SECursor config files:
 CONFIG := \
-  $(shell TMPDIR=$(TMPDIR) $(SECURSOR_ROOT)/sbin/secursor-config)
+  $(shell TMPDIR=$(LOCAL-TMPDIR) $(SECURSOR_ROOT)/sbin/secursor-config)
 ifeq (,$(CONFIG))
   $(error Error in SECursor config files)
 endif
@@ -19,10 +18,14 @@ endif
 include $(CONFIG)
 
 REPO := $(GIT-ROOT)
-TMP := $(TMPDIR)
+TMP := $(LOCAL-TMPDIR)
 NAME := $(shell basename $(REPO))
+TARGET := $(LOCAL-ROOT)/target
+ifeq (,$(wildcard $(TARGET)))
+$(shell mkdir -p $(TARGET))
+endif
 
-C := $(CACHE)
+C := $(LOCAL-CACHE)
 T := $(TARGET)
 N := $(NAME)
 V := $(SECURSOR-VERSION)
@@ -40,9 +43,11 @@ ifeq (,$(shell docker ps --format '{{.Names}}' | grep -q $(CONTAINER-NAME)))
 _ := $(shell rm -f $(CONTAINER-FILE))
 endif
 
+# Print SECursor version
 version:
 	@echo SECursor v$(SECURSOR-VERSION)
 
+# Start the cursor app
 start: $(CONTAINER-FILE)
 	#
 	# Starting the Cursor application for $(NAME)
@@ -55,6 +60,7 @@ start: $(CONTAINER-FILE)
 	  $(CONTAINER-NAME) \
 	  cursor --no-sandbox .
 
+# Kill the app server container
 kill:
 	#
 	# Killing the SECursor Docker container for $(NAME)
@@ -63,26 +69,29 @@ kill:
 	xhost -local:docker
 	$(RM) $(CONTAINER-FILE)
 
+# Build the custom container image for this repo
 build: $(BUILD-FILE)
 
 publish:
 	docker push $(DOCKER-IMAGE)
 
+# Start a Bash shell in the app server container
 shell: $(CONTAINER-FILE)
 	docker exec -it \
 	  -w $(REPO) \
 	  $(CONTAINER-NAME) \
 	  bash
 
-clean:
+clean::
 	$(RM) $(BUILD-FILE)
 
-realclean: kill
+realclean:: kill
 
-distclean: realclean
+distclean:: realclean
 
-sysclean: distclean
-	$(RM) -r $(GIT-EXT)
+# Remove .git/.local
+sysclean:: distclean
+	$(RM) -r $(LOCAL-ROOT)
 
 $(BUILD-FILE):
 	#
@@ -97,6 +106,7 @@ $(BUILD-FILE):
 	  --build-arg GID=$(USER-GID) \
 	  --build-arg APT='$(APT-INSTALL)' \
 	  --build-arg URL=$(CURSOR-APP-URL) \
+	  --build-arg DATE="$(shell date)" \
 	  --tag $(DOCKER-IMAGE) \
 	  .
 	touch $@

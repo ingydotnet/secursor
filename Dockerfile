@@ -80,3 +80,6 @@ RUN set -x \
  && echo '[[ -f ~/.secursor/bashrc ]] &&' > ~/.bashrc \
  && echo '  source ~/.secursor/bashrc' >> ~/.bashrc \
  && true
+
+ARG DATE
+ENV SECURSOR_BUILD_DATE="$DATE"
