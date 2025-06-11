@@ -1,16 +1,16 @@
 M := .git/.makes
-$(shell [ -d $M ] || (git clone -q https://github.com/makeplus/makes $M))
+$(shell [ -d $M ] || git clone -q https://github.com/makeplus/makes $M)
 include $M/init.mk
 include $M/local.mk
 
 SECURSOR-VERSION := 0.1.1
-SECURSOR_ROOT ?= $(MAKE-ROOT)
+SECURSOR_ROOT ?= $(ROOT)
 CURSOR-APP-URL := \
   https://downloads.cursor.com/production/bbfa51c1211255cbbde8b558e014a593f44051f4/linux/x64/Cursor-0.50.0-x86_64.AppImage
 
 # Generate a make-include-file from the SECursor config files:
 CONFIG := \
-  $(shell TMPDIR=$(LOCAL-TMPDIR) $(SECURSOR_ROOT)/sbin/secursor-config)
+  $(shell TMPDIR=$(LOCAL-TMP) $(SECURSOR_ROOT)/sbin/secursor-config)
 ifeq (,$(CONFIG))
   $(error Error in SECursor config files)
 endif
@@ -18,7 +18,7 @@ endif
 include $(CONFIG)
 
 REPO := $(GIT-ROOT)
-TMP := $(LOCAL-TMPDIR)
+TMP := $(LOCAL-TMP)
 NAME := $(shell basename $(REPO))
 TARGET := $(LOCAL-ROOT)/target
 ifeq (,$(wildcard $(TARGET)))
