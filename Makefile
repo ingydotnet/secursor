@@ -1,4 +1,4 @@
-M := .git/.makes
+M := .cache/makes
 $(shell [ -d $M ] || git clone -q https://github.com/makeplus/makes $M)
 include $M/init.mk
 include $M/local.mk
@@ -17,7 +17,7 @@ endif
 # This can override the CURSOR-APP-URL value:
 include $(CONFIG)
 
-REPO := $(GIT-ROOT)
+REPO := $(ROOT)
 TMP := $(LOCAL-TMP)
 NAME := $(shell basename $(REPO))
 TARGET := $(LOCAL-ROOT)/target
