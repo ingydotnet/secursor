@@ -1,6 +1,8 @@
-M := .cache/makes
+# Using the "Makes" Makefile setup - https://github.com/makeplus/makes
+M := $(or $(MAKES_REPO_DIR),.cache/makes)
 $(shell [ -d $M ] || git clone -q https://github.com/makeplus/makes $M)
 include $M/init.mk
+include $M/clean.mk
 include $M/local.mk
 
 SECURSOR-VERSION := 0.1.1
@@ -87,11 +89,6 @@ clean::
 
 realclean:: kill
 
-distclean:: realclean
-
-# Remove .git/.local
-sysclean:: distclean
-	$(RM) -r $(LOCAL-ROOT)
 
 $(BUILD-FILE):
 	#
