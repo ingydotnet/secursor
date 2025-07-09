@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-[[ $XDEBUG ]] && set -x
+[[ $SECURSOR_X_DEBUG ]] && set -x
 
 set -euo pipefail
 
@@ -12,8 +12,14 @@ Options:
       --start         Start the editor (default)
   -r, --restart       Run --kill and --start
 
-  -K, --kill          Kill the editor container
+  -k, --kill          Kill the editor container
+  -K, --rmi           Kill the container & rmi the image
   -R, --rebuild       Rebuild the image and restart
+
+  -s, --status        Show docker status
+  -S, --status-all    Show docker status for all secursors
+
+      --shell         Start a shell in cursor container
 
   -h, --help          Show this help message
   -v, --version       Show the version
@@ -23,6 +29,10 @@ Options:
 
 main() (
   init
+
+  if [[ $# -eq 0 ]]; then
+    set -- --start
+  fi
 
   if [[ ${1-} == -* ]]; then
     action "$@"
@@ -36,9 +46,7 @@ main() (
   cd "$repo" ||
     die "Failed to cd to repo: $repo"
 
-  export SECURSOR_ROOT
-  export SECURSOR_DOCKERFILE=$root/Dockerfile
-  export SECURSOR_ARGS="$*"
+  init
 
   make -e -f "$root/Makefile" start "$@"
 )
@@ -68,15 +76,30 @@ action() (
       secursor "$@"
       ;;
 
-    -K|--kill)
+    -k|--kill)
       make -e -f "$root/Makefile" kill
+      ;;
+
+    -K|--rmi)
+      make -e -f "$root/Makefile" rmi
       ;;
 
     -R|--rebuild)
       setup "$@"
-      make -e -f "$root/Makefile" kill
-      rm -fr "$gitdir/.ext"
+      make -e -f "$root/Makefile" rmi
       secursor "$@"
+      ;;
+
+    --shell)
+      make -e -f "$root/Makefile" shell
+      ;;
+
+    -s|--status)
+      make -e -f "$root/Makefile" status
+      ;;
+
+    -S|--status-all)
+      make -e -f "$root/Makefile" status-all
       ;;
 
     *)
@@ -85,10 +108,8 @@ action() (
 )
 
 init() {
-  SECURSOR_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")/.." && pwd -P)
-  export SECURSOR_ROOT
-  root=$SECURSOR_ROOT
-
+  root=$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")/.." && pwd -P)
+  export SECURSOR_ROOT=$root
   assert-home-config
 }
 
@@ -113,7 +134,7 @@ setup() {
     die 'No repo directory provided'
   [[ -d $repo ]] ||
     die "Repo directory does not exist: $repo"
-  gitdir=$(cd "$repo" && git rev-parse --git-common-dir 2>/dev/null || true)
+  gitdir=$(git -C "$repo" rev-parse --git-common-dir 2>/dev/null || true)
   [[ $gitdir ]] ||
     die "Repo is not a git repository: $repo"
   [[ -d $gitdir ]] ||

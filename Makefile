@@ -3,12 +3,12 @@ M := $(or $(MAKES_REPO_DIR),.cache/makes)
 $(shell [ -d $M ] || git clone -q https://github.com/makeplus/makes $M)
 include $M/init.mk
 include $M/clean.mk
-include $M/local.mk
 
-SECURSOR-VERSION := 0.1.1
+CURSOR-VERSION ?= 0.50.1
+include $M/cursor.mk
+
+SECURSOR-VERSION ?= 0.1.1
 SECURSOR_ROOT ?= $(ROOT)
-CURSOR-APP-URL := \
-  https://downloads.cursor.com/production/bbfa51c1211255cbbde8b558e014a593f44051f4/linux/x64/Cursor-0.50.0-x86_64.AppImage
 
 # Generate a make-include-file from the SECursor config files:
 CONFIG := \
@@ -16,16 +16,14 @@ CONFIG := \
 ifeq (,$(CONFIG))
   $(error Error in SECursor config files)
 endif
-# This can override the CURSOR-APP-URL value:
+# This can override the CURSOR-DOWNLOAD value:
 include $(CONFIG)
 
 REPO := $(ROOT)
 TMP := $(LOCAL-TMP)
 NAME := $(shell basename $(REPO))
 TARGET := $(LOCAL-ROOT)/target
-ifeq (,$(wildcard $(TARGET)))
 $(shell mkdir -p $(TARGET))
-endif
 
 C := $(LOCAL-CACHE)
 T := $(TARGET)
@@ -33,7 +31,6 @@ N := $(NAME)
 V := $(SECURSOR-VERSION)
 
 DOCKER-IMAGE := ingy/secursor-$N:$V
-CURSOR-APP := $C/Cursor-$(CURSOR-VERSION).AppImage
 BUILD-FILE := $T/secursor-build-$N
 CONTAINER-NAME := secursor-$N
 CONTAINER-FILE := $T/$(CONTAINER-NAME)
@@ -41,8 +38,8 @@ CONTAINER-FILE := $T/$(CONTAINER-NAME)
 APPARMOR_PROFILE ?= unconfined
 
 # If container not running, remove the file that says that it is running:
-ifeq (,$(shell docker ps --format '{{.Names}}' | grep -q $(CONTAINER-NAME)))
-_ := $(shell rm -f $(CONTAINER-FILE))
+ifeq (,$(shell docker ps --format '{{.Names}}' | grep $(CONTAINER-NAME)))
+$(shell $(RM) $(CONTAINER-FILE))
 endif
 
 # Print SECursor version
@@ -71,6 +68,10 @@ kill:
 	xhost -local:docker
 	$(RM) $(CONTAINER-FILE)
 
+rmi: kill
+	docker rmi $(DOCKER-IMAGE)
+	$(RM) $(BUILD-FILE)
+
 # Build the custom container image for this repo
 build: $(BUILD-FILE)
 
@@ -78,11 +79,24 @@ publish:
 	docker push $(DOCKER-IMAGE)
 
 # Start a Bash shell in the app server container
-shell: $(CONTAINER-FILE)
+shell:
 	docker exec -it \
 	  -w $(REPO) \
 	  $(CONTAINER-NAME) \
-	  bash
+	  bash --rcfile /tmp/rcfile
+
+
+status:
+	-docker ps | grep $(CONTAINER-NAME)
+	@echo
+	-docker images | grep $(CONTAINER-NAME)
+	@echo
+
+status-all:
+	-docker ps | grep secursor
+	@echo
+	-docker images | grep secursor
+	@echo
 
 clean::
 	$(RM) $(BUILD-FILE)
@@ -90,19 +104,19 @@ clean::
 realclean:: kill
 
 
-$(BUILD-FILE):
+$(BUILD-FILE): $(SECURSOR_ROOT)/Dockerfile
 	#
 	# Building the SECursor Docker image for $(NAME)
 	#
 	-docker kill $(CONTAINER-NAME)
 	$(RM) $@
 	docker build \
-	  -f $(SECURSOR_ROOT)/Dockerfile \
+	  -f $< \
 	  --build-arg USER=$$USER \
 	  --build-arg UID=$(USER-UID) \
 	  --build-arg GID=$(USER-GID) \
 	  --build-arg APT='$(APT-INSTALL)' \
-	  --build-arg URL=$(CURSOR-APP-URL) \
+	  --build-arg URL=$(CURSOR-DOWNLOAD) \
 	  --build-arg DATE="$(shell date)" \
 	  --tag $(DOCKER-IMAGE) \
 	  .

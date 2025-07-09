@@ -72,7 +72,6 @@ RUN curl -s $URL > /usr/local/bin/cursor \
 
 USER $USER
 
-ENV DISPLAY=:0
 ENV QT_X11_NO_MITSHM=1
 
 RUN set -x \
@@ -80,6 +79,8 @@ RUN set -x \
  && echo '[[ -f ~/.secursor/bashrc ]] &&' > ~/.bashrc \
  && echo '  source ~/.secursor/bashrc' >> ~/.bashrc \
  && true
+
+RUN echo 'PS1="(secursor) \w \$ "' > /tmp/rcfile
 
 ARG DATE
 ENV SECURSOR_BUILD_DATE="$DATE"
