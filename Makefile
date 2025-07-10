@@ -57,7 +57,7 @@ start: $(CONTAINER-FILE)
 	  -u $(USER) \
 	  -w $(REPO) \
 	  $(CONTAINER-NAME) \
-	  cursor --no-sandbox .
+	  cursor --no-sandbox $(REPO)
 
 # Kill the app server container
 kill:
