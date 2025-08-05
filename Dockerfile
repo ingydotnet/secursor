@@ -38,10 +38,15 @@ RUN apt-get update \
         libxtst6 \
         locales \
         man-db \
+        python3.12 \
+        python3.12-venv \
         sudo \
+        tmate \
+        unzip \
+        vim \
         wget \
         xz-utils \
-        vim \
+        zip \
  && true
 
 ENV LANG=en_US.UTF-8

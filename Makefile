@@ -4,7 +4,7 @@ $(shell [ -d $M ] || git clone -q https://github.com/makeplus/makes $M)
 include $M/init.mk
 include $M/clean.mk
 
-CURSOR-VERSION ?= 0.50.1
+# CURSOR-VERSION ?= 0.50.1
 include $M/cursor.mk
 
 SECURSOR-VERSION ?= 0.1.1
@@ -18,6 +18,11 @@ ifeq (,$(CONFIG))
 endif
 # This can override the CURSOR-DOWNLOAD value:
 include $(CONFIG)
+
+ifndef CURSOR-DOWNLOAD
+CURSOR-DOWNLOAD := \
+  https://downloads.cursor.com/production/f364e608fc11d38303429b80fd1e1f32d7587d43/linux/x64/Cursor-0.51.2-x86_64.AppImage
+endif
 
 REPO := $(ROOT)
 TMP := $(LOCAL-TMP)
@@ -43,7 +48,7 @@ $(shell $(RM) $(CONTAINER-FILE))
 endif
 
 # Print SECursor version
-version:
+version::
 	@echo SECursor v$(SECURSOR-VERSION)
 
 # Start the cursor app
@@ -73,7 +78,7 @@ rmi: kill
 	$(RM) $(BUILD-FILE)
 
 # Build the custom container image for this repo
-build: $(BUILD-FILE)
+build:: $(BUILD-FILE)
 
 publish:
 	docker push $(DOCKER-IMAGE)

@@ -16,7 +16,7 @@ main() (
   config_mk=$(mktemp $TMPDIR/XXXXXXXX)
 
   cat <<... > "$config_mk"
-CURSOR-APP-URL ?= $cursor_url
+CURSOR-DOWNLOAD ?= $cursor_url
 APT-INSTALL := $apt_install
 ...
 
